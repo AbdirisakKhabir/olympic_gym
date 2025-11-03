@@ -62,7 +62,6 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 }
-
 function useCustomers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
@@ -84,27 +83,14 @@ function useCustomers() {
         ...filters
       });
 
-    
-
       const response = await fetch(`/api/customers?${params}`);
       
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ API Response:', data);
-        
         setCustomers(data.customers || []);
-        
-        if (data.pagination) {
-          setPagination(data.pagination);
-        }
+        setPagination(data.pagination);
       } else {
         const errorData = await response.json().catch(() => ({}));
-        console.error('❌ API Error Response:', {
-          status: response.status,
-          statusText: response.statusText,
-          errorData
-        });
-        
         throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
@@ -123,12 +109,10 @@ function useCustomers() {
 
   const handleStatClick = useCallback(async (statType: string) => {
     try {
-      setLoading(true);
-      
       // If clicking the same stat again, reset to show all
       if (activeStat === statType) {
         setActiveStat(null);
-        const filters = {}; // Reset filters when showing all
+        const filters = {};
         await fetchCustomers(1, filters);
         return;
       }
@@ -136,21 +120,18 @@ function useCustomers() {
       setActiveStat(statType);
       
       // Fetch customers for the specific stat type
-      const response = await fetch(`/api/customers/stats?type=${statType}&page=1&limit=150`);
+      const response = await fetch(`/api/customers?type=${statType}&page=1&limit=150`);
       
       if (response.ok) {
         const data = await response.json();
         setCustomers(data.customers || []);
-        
-        if (data.pagination) {
-          setPagination(data.pagination);
-        }
+        setPagination(data.pagination);
         
         // Show success message
         Swal.fire({
           icon: 'success',
           title: `${statType.charAt(0).toUpperCase() + statType.slice(1)} Members`,
-          text: `Showing ${data.pagination.totalCount} ${statType} members`,
+          text: `Showing ${data.pagination?.totalCount} ${statType} members`,
           timer: 2000,
           showConfirmButton: false,
         });
@@ -165,8 +146,6 @@ function useCustomers() {
         text: 'Failed to load member data',
         timer: 3000,
       });
-    } finally {
-      setLoading(false);
     }
   }, [activeStat, fetchCustomers]);
 
@@ -183,8 +162,10 @@ function useCustomers() {
     activeStat,
     fetchCustomers,
     setCustomers,
-    handleStatClick,
-    resetStatFilter
+    handleStatClick, // Make sure this is returned
+    resetStatFilter,
+    setActiveStat,
+    setPagination
   };
 }
 
@@ -249,7 +230,7 @@ function useCustomerFilters() {
 
 export default function CustomersPage() {
   // State Management
-  const { customers, loading, pagination, fetchCustomers, setCustomers } = useCustomers();
+  const { customers, loading, pagination, fetchCustomers, setCustomers, handleStatClick,  } = useCustomers();
   const {
     selectedFilter,
     searchTerm,
@@ -280,52 +261,7 @@ export default function CustomersPage() {
   const [activeStat, setActiveStat] = useState<string | null>(null);
   // Add this state to track which stat is activ
 
-    // Add this function to handle stat clicks
-    const handleStatClick = async (statType: string) => {
-      try {
-        // If clicking the same stat again, reset to show all
-        if (activeStat === statType) {
-          setActiveStat(null);
-          const filters = getApiFilters();
-          await fetchCustomers(1, filters);
-          return;
-        }
 
-        setActiveStat(statType);
-        
-        // Fetch customers for the specific stat type
-        const response = await fetch(`/api/customers/stats?type=${statType}&page=1&limit=150`);
-        
-        if (response.ok) {
-          const data = await response.json();
-          setCustomers(data.customers || []);
-          
-          if (data.pagination) {
-            // You might need to update your pagination state here
-            // For example: setPagination(data.pagination);
-          }
-          
-          // Show success message
-          Swal.fire({
-            icon: 'success',
-            title: `${statType.charAt(0).toUpperCase() + statType.slice(1)} Members`,
-            text: `Showing ${data.pagination?.totalCount || data.customers?.length} ${statType} members`,
-            timer: 2000,
-            showConfirmButton: false,
-          });
-        } else {
-          throw new Error('Failed to fetch stat data');
-        }
-      } catch (error) {
-        console.error('Error fetching stat data:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Failed to load member data',
-          timer: 3000,
-        });
-      }
-    };
 
   const router = useRouter();
   const { data: session } = useSession();
@@ -798,17 +734,23 @@ export default function CustomersPage() {
     const total = pagination.totalCount;
     
     const active = customers.filter(c => {
-      if (!c.expireDate) return false;
+      if (!c.expireDate) return false; // No expiration date means not active
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       return c.isActive && new Date(c.expireDate) >= today;
     }).length;
     
     const expired = customers.filter(c => {
-      if (!c.expireDate) return true;
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      return !c.isActive || new Date(c.expireDate) < today;
+      
+      // Include customers who:
+      // 1. Are not active OR
+      // 2. Have expiration date in the past OR  
+      // 3. Don't have any expiration date
+      return !c.isActive || 
+             (c.expireDate && new Date(c.expireDate) < today) || 
+             !c.expireDate;
     }).length;
     
     const expiringThisWeek = customers.filter(c => {
