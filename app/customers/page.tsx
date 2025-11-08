@@ -62,6 +62,8 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 }
+
+
 function useCustomers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
@@ -73,6 +75,28 @@ function useCustomers() {
     hasPrev: false
   });
   const [activeStat, setActiveStat] = useState<string | null>(null);
+  const [stats, setStats] = useState({
+    active: 0,
+    noExpireDate: 0,
+    expired: 0,
+    expiringThisWeek: 0,
+    total: 0
+  });
+
+  // Fetch stats from the database
+  const fetchStats = useCallback(async () => {
+    try {
+      const response = await fetch('/api/customers/stats');
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data);
+      } else {
+        console.error('Failed to fetch stats');
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  }, []);
 
   const fetchCustomers = useCallback(async (page = 1, filters = {}) => {
     try {
@@ -109,18 +133,17 @@ function useCustomers() {
 
   const handleStatClick = useCallback(async (statType: string) => {
     try {
-      // If clicking the same stat again, reset to show all
+      // If clicking the same stat again, reset to show default (active members)
       if (activeStat === statType) {
         setActiveStat(null);
-        const filters = {};
-        await fetchCustomers(1, filters);
+        await fetchCustomers(1, {});
         return;
       }
 
       setActiveStat(statType);
       
       // Fetch customers for the specific stat type
-      const response = await fetch(`/api/customers?type=${statType}&page=1&limit=150`);
+      const response = await fetch(`/api/customers?type=${statType}&page=1&limit=200`);
       
       if (response.ok) {
         const data = await response.json();
@@ -151,8 +174,21 @@ function useCustomers() {
 
   const resetStatFilter = useCallback(() => {
     setActiveStat(null);
-    const filters = {};
-    fetchCustomers(1, filters);
+    fetchCustomers(1, {});
+  }, [fetchCustomers]);
+
+  const refreshStats = useCallback(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  // Fetch stats when component mounts
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  // Fetch initial customers (active members by default)
+  useEffect(() => {
+    fetchCustomers(1, {});
   }, [fetchCustomers]);
 
   return {
@@ -160,15 +196,17 @@ function useCustomers() {
     loading,
     pagination,
     activeStat,
+    stats,
     fetchCustomers,
     setCustomers,
-    handleStatClick, // Make sure this is returned
+    handleStatClick,
     resetStatFilter,
     setActiveStat,
-    setPagination
+    setPagination,
+    refreshStats,
+    fetchStats
   };
 }
-
 // Custom hook for filters
 function useCustomerFilters() {
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
@@ -230,7 +268,18 @@ function useCustomerFilters() {
 
 export default function CustomersPage() {
   // State Management
-  const { customers, loading, pagination, fetchCustomers, setCustomers, handleStatClick,  } = useCustomers();
+ const { 
+    customers, 
+    loading, 
+    pagination, 
+    stats,
+    activeStat,
+    fetchCustomers, 
+    setCustomers, 
+    handleStatClick,
+    refreshStats,
+    setActiveStat
+  } = useCustomers();
   const {
     selectedFilter,
     searchTerm,
@@ -258,7 +307,7 @@ export default function CustomersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isRenewalModalOpen, setIsRenewalModalOpen] = useState(false);
   // Add this state to track which stat is active
-  const [activeStat, setActiveStat] = useState<string | null>(null);
+ 
   // Add this state to track which stat is activ
 
 
@@ -303,27 +352,28 @@ export default function CustomersPage() {
     }
   };
 
-  const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const customer: Customer = {
-      ...newCustomer,
-      id: Date.now().toString(),
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    setCustomers(prev => [...prev, customer]);
-    // Refresh data to include the new customer
-    const filters = getApiFilters();
-    fetchCustomers(currentPage, filters);
-    
-    Swal.fire({
-      icon: 'success',
-      title: 'Customer Added!',
-      text: `${newCustomer.name} has been successfully added.`,
-      timer: 2000,
-      showConfirmButton: false,
-    });
+const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const customer: Customer = {
+    ...newCustomer,
+    id: Date.now().toString(),
+    createdAt: new Date(),
+    updatedAt: new Date()
   };
+
+  setCustomers(prev => [...prev, customer]);
+  // Refresh data to include the new customer
+  const filters = getApiFilters();
+  fetchCustomers(currentPage, filters);
+  refreshStats(); // Refresh stats after adding customer
+  
+  Swal.fire({
+    icon: 'success',
+    title: 'Customer Added!',
+    text: `${newCustomer.name} has been successfully added.`,
+    timer: 2000,
+    showConfirmButton: false,
+  });
+};
 
   // Selection functions
   const toggleCustomerSelection = (customerId: string) => {
@@ -725,40 +775,40 @@ export default function CustomersPage() {
     return colorClasses[color as keyof typeof colorClasses] || colorClasses.blue;
   };
 
-const stats = useMemo(() => {
-  if (!isClient) return { active: 0, noExpireDate: 0, expired: 0, expiringThisWeek: 0 }; // Updated to noExpireDate
-  
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const nextWeek = new Date();
-  nextWeek.setDate(today.getDate() + 7);
-  nextWeek.setHours(23, 59, 59, 999);
+  // const stats = useMemo(() => {
+  //   if (!isClient) return { active: 0, noExpireDate: 0, expired: 0, expiringThisWeek: 0 }; // Updated to noExpireDate
+    
+  //   const today = new Date();
+  //   today.setHours(0, 0, 0, 0);
+    
+  //   const nextWeek = new Date();
+  //   nextWeek.setDate(today.getDate() + 7);
+  //   nextWeek.setHours(23, 59, 59, 999);
 
-  // Active members: isActive = true AND expireDate >= today
-  const active = customers.filter(c => 
-    c.isActive && c.expireDate && new Date(c.expireDate) >= today
-  ).length;
-  
-  // No expire date members: expireDate is null
-  const noExpireDate = customers.filter(c => 
-    c.expireDate === null
-  ).length;
-  
-  // Expired members: expireDate < today (excluding null values)
-  const expired = customers.filter(c => 
-    c.expireDate && new Date(c.expireDate) < today
-  ).length;
-  
-  // Expiring this week: expireDate between today and next week
-  const expiringThisWeek = customers.filter(c => 
-    c.expireDate && 
-    new Date(c.expireDate) >= today && 
-    new Date(c.expireDate) <= nextWeek
-  ).length;
+  //   // Active members: isActive = true AND expireDate >= today
+  //   const active = customers.filter(c => 
+  //     c.isActive && c.expireDate && new Date(c.expireDate) >= today
+  //   ).length;
+    
+  //   // No expire date members: expireDate is null
+  //   const noExpireDate = customers.filter(c => 
+  //     c.expireDate === null
+  //   ).length;
+    
+  //   // Expired members: expireDate < today (excluding null values)
+  //   const expired = customers.filter(c => 
+  //     c.expireDate && new Date(c.expireDate) < today
+  //   ).length;
+    
+  //   // Expiring this week: expireDate between today and next week
+  //   const expiringThisWeek = customers.filter(c => 
+  //     c.expireDate && 
+  //     new Date(c.expireDate) >= today && 
+  //     new Date(c.expireDate) <= nextWeek
+  //   ).length;
 
-  return { active, noExpireDate, expired, expiringThisWeek }; // Updated to noExpireDate
-}, [customers, isClient]);
+  //   return { active, noExpireDate, expired, expiringThisWeek }; // Updated to noExpireDate
+  // }, [customers, isClient]);
 
 
 
@@ -954,74 +1004,74 @@ const stats = useMemo(() => {
           </div>
 
 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-  <div 
-    className={`bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-lg cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-xl ${
-      activeStat === 'active' ? 'ring-4 ring-green-300 ring-opacity-50' : ''
-    }`}
-    onClick={() => handleStatClick('active')}
-  >
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-green-100 text-sm font-medium">Active Members</p>
-        <p className="text-3xl font-bold mt-2">{stats.active}</p>
+    <div 
+      className={`bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-lg cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-xl ${
+        activeStat === 'active' ? 'ring-4 ring-green-300 ring-opacity-50' : ''
+      }`}
+      onClick={() => handleStatClick('active')}
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-green-100 text-sm font-medium">Active Members</p>
+          <p className="text-3xl font-bold mt-2">{stats.active}</p>
+        </div>
+        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+          <CheckCircle className="w-7 h-7 text-white" />
+        </div>
       </div>
-      <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-        <CheckCircle className="w-7 h-7 text-white" />
+    </div>
+    
+    <div 
+      className={`bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-xl ${
+        activeStat === 'noExpireDate' ? 'ring-4 ring-blue-300 ring-opacity-50' : ''
+      }`}
+      onClick={() => handleStatClick('noExpireDate')}
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-blue-100 text-sm font-medium">No Expire Date</p>
+          <p className="text-3xl font-bold mt-2">{stats.noExpireDate}</p>
+        </div>
+        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+          <Users className="w-7 h-7 text-white" />
+        </div>
+      </div>
+    </div>
+    
+    <div 
+      className={`bg-gradient-to-r from-red-500 to-red-600 rounded-2xl p-6 text-white shadow-lg cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-xl ${
+        activeStat === 'expired' ? 'ring-4 ring-red-300 ring-opacity-50' : ''
+      }`}
+      onClick={() => handleStatClick('expired')}
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-red-100 text-sm font-medium">Expired</p>
+          <p className="text-3xl font-bold mt-2">{stats.expired}</p>
+        </div>
+        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+          <Clock className="w-7 h-7 text-white" />
+        </div>
+      </div>
+    </div>
+    
+    <div 
+      className={`bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-xl ${
+        activeStat === 'expiring' ? 'ring-4 ring-orange-300 ring-opacity-50' : ''
+      }`}
+      onClick={() => handleStatClick('expiring')}
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-orange-100 text-sm font-medium">Expiring Soon</p>
+          <p className="text-3xl font-bold mt-2">{stats.expiringThisWeek}</p>
+        </div>
+        <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+          <AlertTriangle className="w-7 h-7 text-white" />
+        </div>
       </div>
     </div>
   </div>
-  
-  <div 
-    className={`bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-xl ${
-      activeStat === 'noExpireDate' ? 'ring-4 ring-blue-300 ring-opacity-50' : '' // Changed to noExpireDate
-    }`}
-    onClick={() => handleStatClick('noExpireDate')} // Changed to noExpireDate
-  >
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-blue-100 text-sm font-medium">No Expire Date</p> {/* Updated label */}
-        <p className="text-3xl font-bold mt-2">{stats.noExpireDate}</p> {/* Updated stat name */}
-      </div>
-      <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-        <Users className="w-7 h-7 text-white" />
-      </div>
-    </div>
-  </div>
-  
-  <div 
-    className={`bg-gradient-to-r from-red-500 to-red-600 rounded-2xl p-6 text-white shadow-lg cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-xl ${
-      activeStat === 'expired' ? 'ring-4 ring-red-300 ring-opacity-50' : ''
-    }`}
-    onClick={() => handleStatClick('expired')}
-  >
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-red-100 text-sm font-medium">Expired</p>
-        <p className="text-3xl font-bold mt-2">{stats.expired}</p>
-      </div>
-      <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-        <Clock className="w-7 h-7 text-white" />
-      </div>
-    </div>
-  </div>
-  
-  <div 
-    className={`bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-xl ${
-      activeStat === 'expiring' ? 'ring-4 ring-orange-300 ring-opacity-50' : ''
-    }`}
-    onClick={() => handleStatClick('expiring')}
-  >
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-orange-100 text-sm font-medium">Expiring Soon</p>
-        <p className="text-3xl font-bold mt-2">{stats.expiringThisWeek}</p>
-      </div>
-      <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-        <AlertTriangle className="w-7 h-7 text-white" />
-      </div>
-    </div>
-  </div>
-</div>
 
           {/* Search and Filter Section */}
           <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-8 mb-8 border border-gray-200 transition-all duration-300 hover:shadow-xl">
