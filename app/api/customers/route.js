@@ -23,7 +23,8 @@ export async function GET(request) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // DEFAULT: Show only members that have not expired (expireDate >= today)
+    // DEFAULT: Show only active members (isActive = true AND expireDate >= today)
+    where.isActive = true;
     where.expireDate = { gte: today };
 
     // Handle stats type filtering
@@ -38,17 +39,28 @@ export async function GET(request) {
           where.isActive = true;
           where.expireDate = { gte: today };
           break;
-        case "notExpired":
-          // All members that have not expired (regardless of isActive status)
-          where.expireDate = { gte: today };
+        case "noExpireDate":
+          // All members that have no expiration date (expireDate is null)
+          where = {
+            expireDate: null,
+          };
           break;
         case "expired":
           where = {
-            OR: [{ expireDate: { lt: today } }, { expireDate: null }],
+            OR: [
+              { expireDate: { lt: today } },
+              {
+                AND: [
+                  { expireDate: { not: null } },
+                  { expireDate: { lt: today } },
+                ],
+              },
+            ],
           };
           break;
         case "expiring":
           where = {
+            isActive: true,
             expireDate: {
               gte: today,
               lte: nextWeek,
@@ -56,7 +68,8 @@ export async function GET(request) {
           };
           break;
         default:
-          // Default to not expired members
+          // Default to active members
+          where.isActive = true;
           where.expireDate = { gte: today };
           break;
       }
@@ -88,15 +101,26 @@ export async function GET(request) {
             where.isActive = true;
             where.expireDate = { gte: today };
             break;
-          case "notExpired":
-            where.expireDate = { gte: today };
+          case "noExpireDate":
+            where = {
+              expireDate: null,
+            };
             break;
           case "expired":
             where = {
-              OR: [{ expireDate: { lt: today } }, { expireDate: null }],
+              OR: [
+                { expireDate: { lt: today } },
+                {
+                  AND: [
+                    { expireDate: { not: null } },
+                    { expireDate: { lt: today } },
+                  ],
+                },
+              ],
             };
             break;
           case "expiring":
+            where.isActive = true;
             where.expireDate = {
               gte: today,
               lte: nextWeek,

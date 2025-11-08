@@ -725,11 +725,8 @@ export default function CustomersPage() {
     return colorClasses[color as keyof typeof colorClasses] || colorClasses.blue;
   };
 
-
-
-  
 const stats = useMemo(() => {
-  if (!isClient) return { active: 0, notExpired: 0, expired: 0, expiringThisWeek: 0 };
+  if (!isClient) return { active: 0, noExpireDate: 0, expired: 0, expiringThisWeek: 0 }; // Updated to noExpireDate
   
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -743,14 +740,14 @@ const stats = useMemo(() => {
     c.isActive && c.expireDate && new Date(c.expireDate) >= today
   ).length;
   
-  // Not expired members: expireDate >= today (regardless of isActive status)
-  const notExpired = customers.filter(c => 
-    c.expireDate && new Date(c.expireDate) >= today
+  // No expire date members: expireDate is null
+  const noExpireDate = customers.filter(c => 
+    c.expireDate === null
   ).length;
   
-  // Expired members: expireDate < today OR no expireDate
+  // Expired members: expireDate < today (excluding null values)
   const expired = customers.filter(c => 
-    !c.expireDate || new Date(c.expireDate) < today
+    c.expireDate && new Date(c.expireDate) < today
   ).length;
   
   // Expiring this week: expireDate between today and next week
@@ -760,7 +757,7 @@ const stats = useMemo(() => {
     new Date(c.expireDate) <= nextWeek
   ).length;
 
-  return { active, notExpired, expired, expiringThisWeek };
+  return { active, noExpireDate, expired, expiringThisWeek }; // Updated to noExpireDate
 }, [customers, isClient]);
 
 
@@ -956,8 +953,7 @@ const stats = useMemo(() => {
             </div>
           </div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+<div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
   <div 
     className={`bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-lg cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-xl ${
       activeStat === 'active' ? 'ring-4 ring-green-300 ring-opacity-50' : ''
@@ -977,14 +973,14 @@ const stats = useMemo(() => {
   
   <div 
     className={`bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-xl ${
-      activeStat === 'notExpired' ? 'ring-4 ring-blue-300 ring-opacity-50' : ''
+      activeStat === 'noExpireDate' ? 'ring-4 ring-blue-300 ring-opacity-50' : '' // Changed to noExpireDate
     }`}
-    onClick={() => handleStatClick('notExpired')}
+    onClick={() => handleStatClick('noExpireDate')} // Changed to noExpireDate
   >
     <div className="flex items-center justify-between">
       <div>
-        <p className="text-blue-100 text-sm font-medium">Not Expired</p>
-        <p className="text-3xl font-bold mt-2">{stats.notExpired}</p>
+        <p className="text-blue-100 text-sm font-medium">No Expire Date</p> {/* Updated label */}
+        <p className="text-3xl font-bold mt-2">{stats.noExpireDate}</p> {/* Updated stat name */}
       </div>
       <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
         <Users className="w-7 h-7 text-white" />
@@ -1025,7 +1021,7 @@ const stats = useMemo(() => {
       </div>
     </div>
   </div>
-          </div>
+</div>
 
           {/* Search and Filter Section */}
           <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-8 mb-8 border border-gray-200 transition-all duration-300 hover:shadow-xl">
@@ -1121,22 +1117,21 @@ const stats = useMemo(() => {
               )}
             </div>
           </div>
-         
-          {activeStat && (
-            <div className="mb-6 flex justify-center">
-              <button
-                onClick={() => {
-                  setActiveStat('active'); // Default to active
-                  const filters = getApiFilters();
-                  fetchCustomers(1, filters);
-                }}
-                className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg flex items-center space-x-2"
-              >
-                <RefreshCw className="w-4 h-4" />
-                <span>Show Active Members (Default)</span>
-              </button>
-            </div>
-          )}
+            {activeStat && (
+  <div className="mb-6 flex justify-center">
+    <button
+      onClick={() => {
+        setActiveStat(null);
+        // Reset all filters and fetch default (active members)
+        fetchCustomers(1, {}); // Empty filters to get default
+      }}
+      className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg flex items-center space-x-2"
+    >
+      <RefreshCw className="w-4 h-4" />
+      <span>Show Active Members (Default)</span>
+    </button>
+  </div>
+)}
 
 
           {/* Select All Checkbox */}
