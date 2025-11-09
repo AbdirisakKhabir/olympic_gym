@@ -23,11 +23,7 @@ export async function GET(request) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // DEFAULT: Show only active members (isActive = true AND expireDate >= today)
-    where.isActive = true;
-    where.expireDate = { gte: today };
-
-    // Handle stats type filtering
+    // Handle stats type filtering (has priority)
     if (type) {
       const nextWeek = new Date();
       nextWeek.setDate(today.getDate() + 7);
@@ -47,15 +43,7 @@ export async function GET(request) {
           break;
         case "expired":
           where = {
-            OR: [
-              { expireDate: { lt: today } },
-              {
-                AND: [
-                  { expireDate: { not: null } },
-                  { expireDate: { lt: today } },
-                ],
-              },
-            ],
+            OR: [{ expireDate: { lt: today } }, { isActive: false }],
           };
           break;
         case "expiring":
@@ -68,13 +56,20 @@ export async function GET(request) {
           };
           break;
         default:
-          // Default to active members
-          where.isActive = true;
-          where.expireDate = { gte: today };
+          // If unknown type, don't apply any filters (show all)
           break;
       }
-    } else {
-      // Regular filtering
+    }
+    // Handle regular filtering (when no type parameter)
+    else {
+      // Apply default filter ONLY when no search and no specific status
+      if (!search && (!status || status === "all")) {
+        // DEFAULT: Show only active members (isActive = true AND expireDate >= today)
+        where.isActive = true;
+        where.expireDate = { gte: today };
+      }
+
+      // Search filter - should search through ALL members
       if (search) {
         where.OR = [
           {
@@ -90,6 +85,7 @@ export async function GET(request) {
         ];
       }
 
+      // Status filter
       if (status && status !== "all") {
         const nextWeek = new Date();
         nextWeek.setDate(today.getDate() + 7);
@@ -101,21 +97,11 @@ export async function GET(request) {
             where.expireDate = { gte: today };
             break;
           case "noExpireDate":
-            where = {
-              expireDate: null,
-            };
+            where.expireDate = null;
             break;
           case "expired":
             where = {
-              OR: [
-                { expireDate: { lt: today } },
-                {
-                  AND: [
-                    { expireDate: { not: null } },
-                    { expireDate: { lt: today } },
-                  ],
-                },
-              ],
+              OR: [{ expireDate: { lt: today } }, { isActive: false }],
             };
             break;
           case "expiring":
