@@ -80,7 +80,6 @@ export async function GET(request) {
           {
             name: {
               contains: search,
-              mode: "insensitive",
             },
           },
           {

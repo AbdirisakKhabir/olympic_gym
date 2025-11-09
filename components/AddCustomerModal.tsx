@@ -31,7 +31,11 @@ export default function CustomerModal({
   });
   const [previewImage, setPreviewImage] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   // Reset form when modal opens/closes or customer changes
   useEffect(() => {
@@ -64,6 +68,83 @@ export default function CustomerModal({
       }
     }
   }, [isOpen, customer]);
+
+  // Clean up camera stream when modal closes or camera is hidden
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  const startCamera = async () => {
+    try {
+      setShowCamera(true);
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'user',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } 
+      });
+      
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Camera Error',
+        text: 'Unable to access camera. Please check permissions.',
+        timer: 3000,
+      });
+      setShowCamera(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setShowCamera(false);
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+      
+      // Set canvas dimensions to match video
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      // Draw current video frame to canvas
+      context?.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Convert canvas to data URL
+      const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      
+      // Set preview and form data
+      setPreviewImage(imageDataUrl);
+      setFormData(prev => ({ ...prev, image: imageDataUrl }));
+      
+      // Stop camera
+      stopCamera();
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Photo Captured!',
+        text: 'Photo has been captured successfully.',
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    }
+  };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -108,6 +189,10 @@ export default function CustomerModal({
     }
   };
 
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -144,6 +229,12 @@ export default function CustomerModal({
 
       if (fileInputRef.current?.files?.[0]) {
         submitFormData.append("image", fileInputRef.current.files[0]);
+      } else if (formData.image && formData.image.startsWith('data:image')) {
+        // Convert base64 image to file for camera photos
+        const base64Response = await fetch(formData.image);
+        const blob = await base64Response.blob();
+        const file = new File([blob], 'profile-photo.jpg', { type: 'image/jpeg' });
+        submitFormData.append("image", file);
       }
 
       let response;
@@ -275,6 +366,57 @@ export default function CustomerModal({
 
   return (
     <div className="fixed inset-0 bg-gray-900 bg-opacity-10 flex items-center justify-center p-4 z-50 backdrop-blur-[1px]">
+      {/* Camera Modal */}
+      {showCamera && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-60 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-900">Take Photo</h3>
+              <button
+                onClick={stopCamera}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="relative bg-black rounded-lg overflow-hidden mb-4">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                className="w-full h-64 object-cover"
+              />
+              <canvas ref={canvasRef} className="hidden" />
+            </div>
+            
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={stopCamera}
+                className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={capturePhoto}
+                className="flex-1 px-4 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors font-semibold flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Capture
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Modal */}
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden relative">
         {/* Close Button */}
         <button
@@ -320,9 +462,21 @@ export default function CustomerModal({
               {/* Upload Button */}
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={triggerFileInput}
                 disabled={isLoading}
                 className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full shadow-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+              </button>
+
+              {/* Camera Button */}
+              <button
+                type="button"
+                onClick={startCamera}
+                disabled={isLoading}
+                className="absolute bottom-0 left-0 bg-green-500 text-white p-2 rounded-full shadow-lg hover:bg-green-600 transition-colors disabled:opacity-50"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -354,11 +508,33 @@ export default function CustomerModal({
               disabled={isLoading}
             />
             
-            <p className="text-sm text-gray-500 mt-4">
-              Click the camera icon to upload a profile picture
-            </p>
+            <div className="mt-4 space-y-2">
+              <p className="text-sm text-gray-600 font-medium">
+                Profile Picture
+              </p>
+              <p className="text-xs text-gray-500 max-w-sm mx-auto">
+                Upload from file or use camera to take a photo
+              </p>
+              <div className="flex justify-center gap-4 mt-2">
+                <button
+                  type="button"
+                  onClick={triggerFileInput}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  📁 Upload File
+                </button>
+                <button
+                  type="button"
+                  onClick={startCamera}
+                  className="text-xs text-green-600 hover:text-green-800 font-medium"
+                >
+                  📷 Take Photo
+                </button>
+              </div>
+            </div>
           </div>
 
+          {/* Rest of the form remains the same */}
           {/* Form Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
