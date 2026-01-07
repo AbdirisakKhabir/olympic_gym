@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 const BAWA_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJoa3pyeVM5TkVOd3dFb05DR2tNMDhwSkdVTHVOa3pyOCIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzU5OTM4MjcwfQ.sd1fZmbnGg-fIqT7scDPsc0hS4d2ozhoYsY4Bom2uuU";
-const INSTANCE_ID = "eyJ1aWQiOiJoa3pyeVM5TkVOd3dFb05DR2tNMDhwSkdVTHVOa3pyOCIsImNsaWVudF9pZCI6IkxpYmFheCBGaXRuZXNzIn0=";
+const INSTANCE_ID = "eyJ1aWQiOiJoa3pyeVM5TkVOd3dFb05DR2tNMDhwSkdVTHVOa3pyOCIsImNsaWVudF9pZCI6IkxpYmFheCJ9";
 
 
 export async function POST(req: Request) {
