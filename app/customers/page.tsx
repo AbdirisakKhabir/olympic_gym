@@ -5,16 +5,22 @@ import CustomerCard from '@/components/CustomerCard';
 import CustomerDetailModal from '@/components/CustomerDetailModal';
 import Swal from 'sweetalert2';
 import AddUserModal from '@/components/AddUserModal';
-import UsersListModal from '@/components/UsersListModal';
 import { Users, CheckCircle, Clock, AlertTriangle } from "lucide-react";
-import PaymentsListModal from '@/components/PaymentsListModal';
+import PaymentsTable from '@/components/PaymentsTable';
+import UsersTable from '@/components/UsersTable';
+import ExpensesTable from '@/components/ExpensesTable';
 import PaymentsReportModal from '@/components/PaymentsReportModal';
 import { Search, Plus, RefreshCw, MessageCircle } from "lucide-react";
 import RenewalModal from '@/components/RenewalModal';
 import { useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
-import { CreditCard, BarChart3, LogOut, UserPlus, ChevronRight, ChevronLeft } from 'lucide-react';
+import { CreditCard, BarChart3, LogOut, UserPlus, ChevronRight, ChevronLeft, Receipt, Menu } from 'lucide-react';
 import CustomerModal from '@/components/AddCustomerModal';
+import AddExpenseModal from '@/components/AddExpenseModal';
+import ExpenseReportModal from '@/components/ExpenseReportModal';
+import IncomeStatementModal from '@/components/IncomeStatementModal';
+import Sidebar from '@/components/Sidebar';
+import Dashboard from '@/components/Dashboard';
 
 // Payment types
 interface Payment {
@@ -296,9 +302,6 @@ export default function CustomersPage() {
   const [isClient, setIsClient] = useState(false);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
-  const [isUsersListModalOpen, setIsUsersListModalOpen] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [isPaymentsListModalOpen, setIsPaymentsListModalOpen] = useState(false);
   const [isAddPaymentModalOpen, setIsAddPaymentModalOpen] = useState(false);
   const [isPaymentsReportModalOpen, setIsPaymentsReportModalOpen] = useState(false);
   const [isCustomersReportModalOpen, setIsCustomersReportModalOpen] = useState(false);
@@ -306,6 +309,11 @@ export default function CustomersPage() {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [isRenewalModalOpen, setIsRenewalModalOpen] = useState(false);
+  const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
+  const [isExpenseReportModalOpen, setIsExpenseReportModalOpen] = useState(false);
+  const [isIncomeStatementModalOpen, setIsIncomeStatementModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [activeView, setActiveView] = useState<'dashboard' | 'members' | 'payments' | 'users' | 'expenses'>('dashboard');
   // Add this state to track which stat is active
  
   // Add this state to track which stat is activ
@@ -818,20 +826,18 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
   // Loading state
   if (!isClient) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mx-auto mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/3 mx-auto mb-12"></div>
-            
+      <AuthWrapper>
+        <div className="fixed left-0 top-0 h-screen w-64 bg-slate-800 animate-pulse" />
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pl-64 p-6">
+          <div className="max-w-7xl mx-auto animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/3 mb-12"></div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="bg-white rounded-2xl p-6 h-24 shadow-sm"></div>
               ))}
             </div>
-            
             <div className="bg-white rounded-2xl p-8 mb-8 h-40 shadow-sm"></div>
-            
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {[...Array(8)].map((_, i) => (
                 <div key={i} className="bg-white rounded-2xl shadow-sm p-6 h-64"></div>
@@ -839,14 +845,40 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
             </div>
           </div>
         </div>
-      </div>
+      </AuthWrapper>
     );
   }
 
   return (
     <AuthWrapper>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
-        <div className="max-w-7xl mx-auto">
+      <Sidebar
+        onDashboard={() => { setActiveView('dashboard'); setIsSidebarOpen(false); }}
+        onMembersList={() => { setActiveView('members'); setIsSidebarOpen(false); }}
+        onAddMember={() => { setIsCustomerModalOpen(true); setIsSidebarOpen(false); }}
+        onPaymentsList={() => { setActiveView('payments'); setIsSidebarOpen(false); }}
+        onUsersList={() => { setActiveView('users'); setIsSidebarOpen(false); }}
+        onAddUser={() => { setIsAddUserModalOpen(true); setIsSidebarOpen(false); }}
+        onPaymentsReport={() => { setIsPaymentsReportModalOpen(true); setIsSidebarOpen(false); }}
+        onExpenseReport={() => { setIsExpenseReportModalOpen(true); setIsSidebarOpen(false); }}
+        onIncomeStatement={() => { setIsIncomeStatementModalOpen(true); setIsSidebarOpen(false); }}
+        onAddExpense={() => { setIsAddExpenseModalOpen(true); setIsSidebarOpen(false); }}
+        onExpensesList={() => { setActiveView('expenses'); setIsSidebarOpen(false); }}
+        onLogout={handleLogout}
+        isOpen={isSidebarOpen}
+        onToggle={() => setIsSidebarOpen((prev) => !prev)}
+      />
+
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 lg:pl-64">
+        <div className="p-6 max-w-7xl mx-auto">
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="lg:hidden fixed top-4 left-4 z-20 p-2 rounded-lg bg-slate-800 text-white shadow-lg"
+            aria-label="Open menu"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+
           {/* Loading Overlay */}
           {loading && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
@@ -857,152 +889,37 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
             </div>
           )}
 
-          {/* Header with Navigation Dropdowns */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12">
-            <div className="flex items-center mb-4 md:mb-0">
-              <img
-                src='./logo.jpg'
-                alt="Company Logo"
-                className="w-16 h-16 rounded-xl object-cover border-2 border-white shadow-lg mr-4"
-              />
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">Libaax Fitness</h1>
-                <p className="text-gray-600 mt-1">Membership Management System</p>
-                {session?.user && (
-                  <p className="text-sm text-gray-500">
-                    Welcome, {session.user.name || session.user.email?.split('@')[0] || 'User'}
-                  </p>
-                )}
-              </div>
-            </div>
-            
-            {/* Navigation Dropdowns */}
-            <div className="flex flex-wrap gap-3">
-              {/* Payments Dropdown */}
-              <div className="relative">
-                <button
-                  onClick={() => setActiveDropdown(activeDropdown === 'payments' ? null : 'payments')}
-                  className="bg-white text-gray-700 border border-gray-300 px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-sm hover:shadow-md hover:border-blue-300 flex items-center space-x-2"
-                >
-                  <CreditCard className="w-4 h-4" />
-                  <span>Payments</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                
-                {activeDropdown === 'payments' && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-white text-black rounded-xl shadow-lg border border-gray-200 z-10 animate-in fade-in-0 zoom-in-95">
-                    <button
-                      onClick={() => {
-                        setIsPaymentsListModalOpen(true);
-                        setActiveDropdown(null);
-                      }}
-                      className="w-full text-left px-4 py-3 hover:bg-blue-50 rounded-t-xl transition-colors duration-200 border-b border-gray-100 flex items-center space-x-2"
-                    >
-                      <CreditCard className="w-4 h-4" />
-                      <span>Payments List</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Users Dropdown */}
-              <div className="relative">
-                <button
-                  onClick={() => setActiveDropdown(activeDropdown === 'users' ? null : 'users')}
-                  className="bg-white text-gray-700 border border-gray-300 px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-sm hover:shadow-md hover:border-green-300 flex items-center space-x-2"
-                >
-                  <Users className="w-4 h-4" />
-                  <span>Users</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                
-                {activeDropdown === 'users' && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-white text-black rounded-xl shadow-lg border border-gray-200 z-10 animate-in fade-in-0 zoom-in-95">
-                    <button
-                      onClick={() => {
-                        setIsUsersListModalOpen(true);
-                        setActiveDropdown(null);
-                      }}
-                      className="w-full text-left px-4 py-3 hover:bg-green-50 rounded-t-xl duration-200 border-b border-gray-100 flex items-center space-x-2"
-                    >
-                      <Users className="w-4 h-4" />
-                      <span>Users List</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsAddUserModalOpen(true);
-                        setActiveDropdown(null);
-                      }}
-                      className="w-full text-left px-4 py-3 hover:bg-green-50 rounded-b-xl transition-colors duration-200 flex items-center space-x-2"
-                    >
-                      <UserPlus className="w-4 h-4" />
-                      <span>Add User</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Reports Dropdown */}
-              <div className="relative">
-                <button
-                  onClick={() => setActiveDropdown(activeDropdown === 'reports' ? null : 'reports')}
-                  className="bg-white text-gray-700 border border-gray-300 px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-sm hover:shadow-md hover:border-purple-300 flex items-center space-x-2"
-                >
-                  <BarChart3 className="w-4 h-4" />
-                  <span>Reports</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                
-                {activeDropdown === 'reports' && (
-                  <div className="absolute top-full left-0 mt-2 w-48 bg-white text-black rounded-xl shadow-lg border border-gray-200 z-10 animate-in fade-in-0 zoom-in-95">
-                    <button
-                      onClick={() => {
-                        setIsPaymentsReportModalOpen(true);
-                        setActiveDropdown(null);
-                      }}
-                      className="w-full text-left px-4 py-3 hover:bg-purple-50 rounded-t-xl transition-colors duration-200 border-b border-gray-100 flex items-center space-x-2"
-                    >
-                      <CreditCard className="w-4 h-4" />
-                      <span>Payments Report</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Add Member Button */}
-              <div className="relative">
-                <button
-                 onClick={() => setIsCustomerModalOpen(true)}
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 
-                            hover:from-blue-600 hover:to-blue-700 text-white 
-                            px-8 py-4 rounded-xl font-bold transition-all duration-200 
-                            shadow-lg shadow-blue-500/25 flex items-center space-x-2 
-                            transform hover:scale-105"
-                >
-                  <Plus className="w-5 h-5" />
-                  <span>Add New Member</span>
-                </button>
-              </div>
-
-              {/* Logout Button */}
-              <div className="relative">
-                <button
-                  onClick={handleLogout}
-                  className="bg-white text-red-600 border border-red-200 px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-sm hover:shadow-md hover:bg-red-50 hover:border-red-300 flex items-center space-x-2"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Logout</span>
-                </button>
-              </div>
-            </div>
+          {/* Page Header */}
+          <div className="mb-8 pt-12 lg:pt-0">
+            <h1 className="text-2xl font-bold text-gray-800">
+              {activeView === 'dashboard' && 'Dashboard'}
+              {activeView === 'members' && 'Members'}
+              {activeView === 'payments' && 'Payments'}
+              {activeView === 'users' && 'Users'}
+              {activeView === 'expenses' && 'Expenses'}
+            </h1>
+            <p className="text-gray-600 mt-1">
+              {activeView === 'dashboard' && 'Overview of your gym performance'}
+              {activeView === 'members' && 'Manage your gym members and membership'}
+              {activeView === 'payments' && 'All payment transactions'}
+              {activeView === 'users' && 'Manage system users and roles'}
+              {activeView === 'expenses' && 'View and manage all expenses'}
+            </p>
           </div>
 
+          {activeView === 'dashboard' && (
+            <Dashboard
+              onMembersList={() => setActiveView('members')}
+              onAddMember={() => setIsCustomerModalOpen(true)}
+              onIncomeStatement={() => setIsIncomeStatementModalOpen(true)}
+              userName={session?.user?.name || session?.user?.email?.split('@')[0] || null}
+            />
+          )}
+          {activeView === 'payments' && <PaymentsTable />}
+          {activeView === 'users' && <UsersTable onAddUser={() => setIsAddUserModalOpen(true)} />}
+          {activeView === 'expenses' && <ExpensesTable onAddExpense={() => setIsAddExpenseModalOpen(true)} />}
+          {activeView === 'members' && (
+            <>
 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
     <div 
       className={`bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-lg cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-xl ${
@@ -1074,10 +991,15 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
   </div>
 
           {/* Search and Filter Section */}
-          <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-8 mb-8 border border-gray-200 transition-all duration-300 hover:shadow-xl">
-            {/* Top Controls */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
-              {/* Search Box */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100 overflow-hidden">
+            <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-100">
+              <Search className="w-5 h-5 text-blue-500" />
+              <h3 className="text-base font-semibold text-gray-800">Search & Filters</h3>
+            </div>
+
+            {/* Search */}
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-gray-600 mb-3">Search</label>
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
@@ -1085,57 +1007,68 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
                   placeholder="Search by name or phone number..."
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-xl 
+                  className="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl 
                             focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                            bg-white shadow-sm text-gray-900 placeholder-gray-500 
-                            transition-all duration-200 hover:shadow-md"
+                            bg-gray-50/50 text-gray-900 placeholder-gray-400 
+                            transition-all duration-200"
                 />
               </div>
+            </div>
 
-              {/* Filter Buttons */}
-              <div className="flex flex-wrap gap-3 justify-start lg:justify-end">
-                {[
-                  { label: "All Members", key: "all", color: "blue" as const },
-                  { label: `Today (${getDayName(0)})`, key: "today", color: "red" as const },
-                  { label: `Tomorrow (${getDayName(1)})`, key: "tomorrow", color: "orange" as const },
-                  { label: "Expired", key: "expired", color: "red" as const },
-                ].map((btn) => (
-                  <button
-                    key={btn.key}
-                    onClick={() => handleFilterChange(btn.key)}
-                    className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                      selectedFilter === btn.key
-                        ? getActiveButtonClasses(btn.color)
-                        : getInactiveButtonClasses(btn.color)
-                    }`}
-                  >
-                    {btn.label}
-                  </button>
-                ))}
+            {/* Filters Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Status Filters */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-600 mb-3">Status</label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: "All Members", key: "all", color: "blue" as const },
+                    { label: `Today (${getDayName(0)})`, key: "today", color: "red" as const },
+                    { label: `Tomorrow (${getDayName(1)})`, key: "tomorrow", color: "orange" as const },
+                    { label: "Expired", key: "expired", color: "red" as const },
+                  ].map((btn) => (
+                    <button
+                      key={btn.key}
+                      onClick={() => handleFilterChange(btn.key)}
+                      className={`px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 ${
+                        selectedFilter === btn.key
+                          ? getActiveButtonClasses(btn.color)
+                          : getInactiveButtonClasses(btn.color)
+                      }`}
+                    >
+                      {btn.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-                {/* Gender Filters */}
-                {[
-                  { label: "Male", key: "male", color: "indigo" as const },
-                  { label: "Female", key: "female", color: "pink" as const },
-                  { label: "All Genders", key: "all", color: "gray" as const },
-                ].map((btn) => (
-                  <button
-                    key={btn.key}
-                    onClick={() => handleGenderFilter(btn.key)}
-                    className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                      genderFilter === btn.key
-                        ? getActiveButtonClasses(btn.color)
-                        : getInactiveButtonClasses(btn.color)
-                    }`}
-                  >
-                    {btn.label}
-                  </button>
-                ))}
+              {/* Gender Filters */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-600 mb-3">Gender</label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: "All", key: "all", color: "gray" as const },
+                    { label: "Male", key: "male", color: "indigo" as const },
+                    { label: "Female", key: "female", color: "pink" as const },
+                  ].map((btn) => (
+                    <button
+                      key={btn.key}
+                      onClick={() => handleGenderFilter(btn.key)}
+                      className={`px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 ${
+                        genderFilter === btn.key
+                          ? getActiveButtonClasses(btn.color)
+                          : getInactiveButtonClasses(btn.color)
+                      }`}
+                    >
+                      {btn.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap gap-4 mt-8 pt-6 border-t border-gray-200">
+            <div className="flex flex-wrap gap-4 mt-6 pt-6 border-t border-gray-100">
               {selectedCustomers.length > 0 && (
                 <>
                   {/* Renew Button */}
@@ -1342,6 +1275,9 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
             </div>
           )}
 
+          </>
+          )}
+
           {/* Modals */}
           <CustomerDetailModal
             isOpen={isDetailModalOpen}
@@ -1370,11 +1306,6 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
             currentUser={session?.user}
           />
 
-          <PaymentsListModal
-            isOpen={isPaymentsListModalOpen}
-            onClose={() => setIsPaymentsListModalOpen(false)}
-          />
-
           <PaymentsReportModal
             isOpen={isPaymentsReportModalOpen}
             onClose={() => setIsPaymentsReportModalOpen(false)}
@@ -1386,9 +1317,20 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
             onAdd={handleAddUser}
           />
 
-          <UsersListModal
-            isOpen={isUsersListModalOpen}
-            onClose={() => setIsUsersListModalOpen(false)}
+          <AddExpenseModal
+            isOpen={isAddExpenseModalOpen}
+            onClose={() => setIsAddExpenseModalOpen(false)}
+            onAdd={() => {}}
+          />
+
+          <ExpenseReportModal
+            isOpen={isExpenseReportModalOpen}
+            onClose={() => setIsExpenseReportModalOpen(false)}
+          />
+
+          <IncomeStatementModal
+            isOpen={isIncomeStatementModalOpen}
+            onClose={() => setIsIncomeStatementModalOpen(false)}
           />
 
           {/* Add Payment Modal */}
@@ -1559,7 +1501,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
                     </button>
                     <button
                       onClick={() => generateReport('customers')}
-                      className="flex-1 bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg"
+                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg"
                     >
                       Generate Report
                     </button>

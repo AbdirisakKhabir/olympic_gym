@@ -14,8 +14,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Libaax Fitness",
+  title: "OLYMPIC GYM",
   description: "Member Management System",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({

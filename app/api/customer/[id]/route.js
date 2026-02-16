@@ -85,6 +85,10 @@ export async function PUT(request, { params }) {
     const fee = formData.get("fee");
     const gender = formData.get("gender");
     const image = formData.get("image");
+    const height = formData.get("height");
+    const weight = formData.get("weight");
+    const bmi = formData.get("bmi");
+    const standardWeight = formData.get("standardWeight");
 
     // 3. Check existence
     const existingCustomer = await prisma.customer.findUnique({
@@ -115,6 +119,10 @@ export async function PUT(request, { params }) {
       image: imageUrl,
       updatedAt: new Date(),
     };
+    updateData.height = height && height.toString().trim() !== "" ? parseFloat(height.toString()) : null;
+    updateData.weight = weight && weight.toString().trim() !== "" ? parseFloat(weight.toString()) : null;
+    updateData.bmi = bmi && bmi.toString().trim() !== "" ? parseFloat(bmi.toString()) : null;
+    updateData.standardWeight = standardWeight && standardWeight.toString().trim() !== "" ? parseFloat(standardWeight.toString()) : null;
 
     // 6. Save to Database
     const updatedCustomer = await prisma.customer.update({

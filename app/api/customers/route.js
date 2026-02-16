@@ -142,6 +142,10 @@ export async function GET(request) {
           isActive: true,
           gender: true,
           balance: true,
+          height: true,
+          weight: true,
+          bmi: true,
+          standardWeight: true,
           createdAt: true,
           updatedAt: true,
           _count: {

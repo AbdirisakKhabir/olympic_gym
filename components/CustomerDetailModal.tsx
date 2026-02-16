@@ -140,7 +140,7 @@ export default function CustomerDetailModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-3xl font-bold">Member Details</h2>
@@ -270,6 +270,44 @@ export default function CustomerDetailModal({
               </div>
             </div>
           </div>
+
+          {/* Body Metrics - only show if any value exists */}
+          {(customer.height != null || customer.weight != null || customer.bmi != null || customer.standardWeight != null) && (
+            <div className="bg-gray-50 rounded-2xl p-6 mb-6">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V5z" clipRule="evenodd" />
+                </svg>
+                Body Metrics
+              </h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                {customer.height != null && (
+                  <div>
+                    <p className="text-gray-600">Height</p>
+                    <p className="font-semibold text-gray-900">{Number(customer.height).toFixed(1)} cm</p>
+                  </div>
+                )}
+                {customer.weight != null && (
+                  <div>
+                    <p className="text-gray-600">Weight</p>
+                    <p className="font-semibold text-gray-900">{Number(customer.weight).toFixed(1)} kg</p>
+                  </div>
+                )}
+                {customer.bmi != null && (
+                  <div>
+                    <p className="text-gray-600">BMI</p>
+                    <p className="font-semibold text-gray-900">{Number(customer.bmi).toFixed(2)}</p>
+                  </div>
+                )}
+                {customer.standardWeight != null && (
+                  <div>
+                    <p className="text-gray-600">Standard Weight</p>
+                    <p className="font-semibold text-gray-900">{Number(customer.standardWeight).toFixed(1)} kg</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Additional Information */}
           <div className="bg-blue-50 rounded-2xl p-6">

@@ -59,6 +59,10 @@ export async function POST(req) {
     const fee = formData.get("fee");
     const gender = formData.get("gender");
     const image = formData.get("image");
+    const height = formData.get("height");
+    const weight = formData.get("weight");
+    const bmi = formData.get("bmi");
+    const standardWeight = formData.get("standardWeight");
 
     // ✅ Validate required fields (phone is now optional)
     if (!name || !registerDate || !fee || !gender) {
@@ -88,6 +92,10 @@ export async function POST(req) {
       balance: 0,
       image: imageUrl,
       isActive: true,
+      height: height ? parseFloat(height) : null,
+      weight: weight ? parseFloat(weight) : null,
+      bmi: bmi ? parseFloat(bmi) : null,
+      standardWeight: standardWeight ? parseFloat(standardWeight) : null,
     };
 
     // ✅ Now we pass proper JS Dates to Prisma

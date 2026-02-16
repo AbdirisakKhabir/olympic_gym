@@ -22,19 +22,23 @@ model User {
 }
 
 model Customer {
-  id           Int       @id @default(autoincrement())
-  name         String
-  phone        String?   @unique
-  image        String?
-  registerDate DateTime
-  expireDate   DateTime?
-  fee          Float
-  isActive     Boolean   @default(true)
-  gender       String
-  balance      Float     @default(0)
-  payments     Payment[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id             Int       @id @default(autoincrement())
+  name           String
+  phone          String?   @unique
+  image          String?
+  registerDate   DateTime
+  expireDate     DateTime?
+  fee            Float
+  isActive       Boolean   @default(true)
+  gender         String
+  balance        Float     @default(0)
+  height         Float?
+  weight         Float?
+  bmi            Float?
+  standardWeight Float?
+  payments       Payment[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
 
 // =========================
@@ -52,4 +56,17 @@ model Payment {
   // Relationships
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// =========================
+// Expense Model
+// =========================
+model Expense {
+  id          Int      @id @default(autoincrement())
+  type        String
+  amount      Float
+  description String?
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

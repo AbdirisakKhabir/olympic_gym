@@ -168,15 +168,15 @@ export default function PaymentsReportModal({ isOpen, onClose }: PaymentsReportM
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden transform transition-all duration-300 scale-100">
         {/* Header */}
-        <div className="p-2 border-b border-gray-200 bg-gradient-to-r text-black">
+        <div className="p-2 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold">Payments Report</h2>
-              <p className="text-black-100 mt-1">Generate detailed payments report for any period</p>
+              <p className="text-blue-100 mt-1">Generate detailed payments report for any period</p>
             </div>
             <button
               onClick={onClose}
-              className="text-white hover:text-purple-200 transition-colors duration-200 p-2 hover:bg-purple-700 rounded-lg"
+              className="text-white hover:text-blue-200 transition-colors duration-200 p-2 hover:bg-blue-700 rounded-lg"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -194,7 +194,7 @@ export default function PaymentsReportModal({ isOpen, onClose }: PaymentsReportM
                 type="date"
                 value={filters.startDate}
                 onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white transition-all duration-200"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-200"
               />
             </div>
             <div>
@@ -203,7 +203,7 @@ export default function PaymentsReportModal({ isOpen, onClose }: PaymentsReportM
                 type="date"
                 value={filters.endDate}
                 onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white transition-all duration-200"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-200"
               />
             </div>
             <div>
@@ -213,7 +213,7 @@ export default function PaymentsReportModal({ isOpen, onClose }: PaymentsReportM
                 value={filters.customerName}
                 onChange={(e) => handleFilterChange('customerName', e.target.value)}
                 placeholder="Filter by name..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white transition-all duration-200"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-200"
               />
             </div>
             <div>
@@ -223,7 +223,7 @@ export default function PaymentsReportModal({ isOpen, onClose }: PaymentsReportM
                 value={filters.phone}
                 onChange={(e) => handleFilterChange('phone', e.target.value)}
                 placeholder="Filter by phone..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white transition-all duration-200"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-200"
               />
             </div>
           </div>
@@ -232,7 +232,7 @@ export default function PaymentsReportModal({ isOpen, onClose }: PaymentsReportM
               <button
                 onClick={generateReport}
                 disabled={isGenerating}
-                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
               >
                 {isGenerating ? (
                   <>
@@ -256,7 +256,7 @@ export default function PaymentsReportModal({ isOpen, onClose }: PaymentsReportM
             {reportData && (
               <button
                 onClick={exportToCSV}
-                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-200 shadow-lg flex items-center space-x-2"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-200 shadow-lg flex items-center space-x-2"
               >
                 <span>📥</span>
                 <span>Export CSV</span>
@@ -275,21 +275,21 @@ export default function PaymentsReportModal({ isOpen, onClose }: PaymentsReportM
                   <p className="text-blue-600 text-sm font-medium">Total Payments</p>
                   <p className="text-2xl font-bold text-blue-700">{reportData.totals.totalPayments}</p>
                 </div>
-                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                  <p className="text-green-600 text-sm font-medium">Total Paid</p>
-                  <p className="text-2xl font-bold text-green-700">${reportData.totals.totalPaid.toFixed(2)}</p>
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                  <p className="text-blue-600 text-sm font-medium">Total Paid</p>
+                  <p className="text-2xl font-bold text-blue-700">${reportData.totals.totalPaid.toFixed(2)}</p>
                 </div>
-                <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
-                  <p className="text-yellow-600 text-sm font-medium">Total Discount</p>
-                  <p className="text-2xl font-bold text-yellow-700">${reportData.totals.totalDiscount.toFixed(2)}</p>
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                  <p className="text-blue-600 text-sm font-medium">Total Discount</p>
+                  <p className="text-2xl font-bold text-blue-700">${reportData.totals.totalDiscount.toFixed(2)}</p>
                 </div>
-                <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-                  <p className="text-purple-600 text-sm font-medium">Total Balance</p>
-                  <p className="text-2xl font-bold text-purple-700">${reportData.totals.totalBalance.toFixed(2)}</p>
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                  <p className="text-blue-600 text-sm font-medium">Total Balance</p>
+                  <p className="text-2xl font-bold text-blue-700">${reportData.totals.totalBalance.toFixed(2)}</p>
                 </div>
-                <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-                  <p className="text-indigo-600 text-sm font-medium">Unique Customers</p>
-                  <p className="text-2xl font-bold text-indigo-700">{reportData.totals.totalCustomers}</p>
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                  <p className="text-blue-600 text-sm font-medium">Unique Customers</p>
+                  <p className="text-2xl font-bold text-blue-700">{reportData.totals.totalCustomers}</p>
                 </div>
               </div>
 
@@ -335,13 +335,13 @@ export default function PaymentsReportModal({ isOpen, onClose }: PaymentsReportM
                             <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                               {payment.customer.phone || 'N/A'}
                             </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-green-600 font-semibold">
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-blue-600 font-semibold">
                               ${payment.paidAmount.toFixed(2)}
                             </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-yellow-600">
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-blue-600">
                               ${payment.discount.toFixed(2)}
                             </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-purple-600">
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-blue-600">
                               ${payment.balance.toFixed(2)}
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
@@ -364,13 +364,13 @@ export default function PaymentsReportModal({ isOpen, onClose }: PaymentsReportM
                           <td colSpan={3} className="px-4 py-3 text-right text-sm font-medium text-gray-900">
                             Totals:
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-green-600 border-t">
+                          <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-blue-600 border-t">
                             ${reportData.totals.totalPaid.toFixed(2)}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-yellow-600 border-t">
+                          <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-blue-600 border-t">
                             ${reportData.totals.totalDiscount.toFixed(2)}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-purple-600 border-t">
+                          <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-blue-600 border-t">
                             ${reportData.totals.totalBalance.toFixed(2)}
                           </td>
                           <td className="px-4 py-3 border-t"></td>

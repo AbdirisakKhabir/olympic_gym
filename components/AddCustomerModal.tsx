@@ -27,7 +27,11 @@ export default function CustomerModal({
     expireDate: '',
     fee: '',
     gender: 'male',
-    image: ''
+    image: '',
+    height: '',
+    weight: '',
+    bmi: '',
+    standardWeight: '',
   });
   const [previewImage, setPreviewImage] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +53,11 @@ export default function CustomerModal({
           expireDate: customer.expireDate ? new Date(customer.expireDate).toISOString().split('T')[0] : '',
           fee: customer.fee.toString(),
           gender: customer.gender,
-          image: customer.image || ''
+          image: customer.image || '',
+          height: customer.height != null ? String(customer.height) : '',
+          weight: customer.weight != null ? String(customer.weight) : '',
+          bmi: customer.bmi != null ? String(customer.bmi) : '',
+          standardWeight: customer.standardWeight != null ? String(customer.standardWeight) : '',
         });
         setPreviewImage(customer.image || '');
       } else {
@@ -61,13 +69,31 @@ export default function CustomerModal({
           expireDate: '',
           fee: '',
           gender: 'male',
-          image: ''
+          image: '',
+          height: '',
+          weight: '',
+          bmi: '',
+          standardWeight: '',
         });
         setPreviewImage('');
         if (fileInputRef.current) fileInputRef.current.value = '';
       }
     }
   }, [isOpen, customer]);
+
+  // Auto-calculate BMI when height or weight changes
+  // BMI formula: BMI = weight (kg) / height (m)² = weight / (height/100)²
+  useEffect(() => {
+    const heightCm = parseFloat(formData.height);
+    const weightKg = parseFloat(formData.weight);
+    if (heightCm > 0 && weightKg > 0) {
+      const heightM = heightCm / 100;
+      const bmi = weightKg / (heightM * heightM);
+      setFormData(prev => ({ ...prev, bmi: bmi.toFixed(2) }));
+    } else {
+      setFormData(prev => ({ ...prev, bmi: '' }));
+    }
+  }, [formData.height, formData.weight]);
 
   // Clean up camera stream when modal closes or camera is hidden
   useEffect(() => {
@@ -233,6 +259,11 @@ export default function CustomerModal({
       submitFormData.append("fee", formData.fee);
       submitFormData.append("gender", formData.gender);
 
+      submitFormData.append("height", formData.height);
+      submitFormData.append("weight", formData.weight);
+      submitFormData.append("bmi", formData.bmi);
+      submitFormData.append("standardWeight", formData.standardWeight);
+
       if (fileInputRef.current?.files?.[0]) {
         submitFormData.append("image", fileInputRef.current.files[0]);
       } else if (formData.image && formData.image.startsWith('data:image')) {
@@ -326,6 +357,10 @@ export default function CustomerModal({
           gender: formData.gender,
           image: formData.image,
           isActive: customer.isActive,
+          height: formData.height ? parseFloat(formData.height) : null,
+          weight: formData.weight ? parseFloat(formData.weight) : null,
+          bmi: formData.bmi ? parseFloat(formData.bmi) : null,
+          standardWeight: formData.standardWeight ? parseFloat(formData.standardWeight) : null,
         });
 
         // SUCCESS ALERT FOR UPDATE
@@ -650,6 +685,71 @@ export default function CustomerModal({
                 placeholder="0.00"
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Height <span className="text-gray-500 font-normal">(Optional)</span>
+              </label>
+              <input
+                type="number"
+                name="height"
+                step="0.01"
+                min="0"
+                value={formData.height}
+                onChange={handleChange}
+                disabled={isLoading}
+                className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-lg text-gray-900 bg-white placeholder-gray-500 disabled:opacity-50"
+                placeholder="e.g. 175 (cm)"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Weight <span className="text-gray-500 font-normal">(Optional)</span>
+              </label>
+              <input
+                type="number"
+                name="weight"
+                step="0.01"
+                min="0"
+                value={formData.weight}
+                onChange={handleChange}
+                disabled={isLoading}
+                className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-lg text-gray-900 bg-white placeholder-gray-500 disabled:opacity-50"
+                placeholder="e.g. 70 (kg)"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                BMI <span className="text-gray-500 font-normal">(Auto-calculated from height & weight)</span>
+              </label>
+              <input
+                type="text"
+                name="bmi"
+                readOnly
+                value={formData.bmi}
+                className="w-full px-4 py-4 border border-gray-300 rounded-xl bg-gray-50 text-lg text-gray-700 cursor-not-allowed"
+                placeholder="Enter height & weight to calculate"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Standard Weight <span className="text-gray-500 font-normal">(Optional)</span>
+              </label>
+              <input
+                type="number"
+                name="standardWeight"
+                step="0.01"
+                min="0"
+                value={formData.standardWeight}
+                onChange={handleChange}
+                disabled={isLoading}
+                className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-lg text-gray-900 bg-white placeholder-gray-500 disabled:opacity-50"
+                placeholder="e.g. 68 (kg)"
+              />
+            </div>
           </div>
 
           {/* Action Buttons */}
@@ -665,7 +765,7 @@ export default function CustomerModal({
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-semibold hover:scale-105 shadow-lg disabled:opacity-50 flex items-center justify-center"
+              className="flex-1 px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 font-semibold hover:scale-105 shadow-lg disabled:opacity-50 flex items-center justify-center"
             >
               {isLoading ? (
                 <>
