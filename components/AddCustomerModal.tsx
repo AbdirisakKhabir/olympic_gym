@@ -39,6 +39,8 @@ export default function CustomerModal({
   const [previewImage, setPreviewImage] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [cameraFacing, setCameraFacing] = useState<'user' | 'environment'>('environment');
+  const [isSwitchingCamera, setIsSwitchingCamera] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -109,30 +111,90 @@ export default function CustomerModal({
     };
   }, []);
 
-  const startCamera = async () => {
+  const startCamera = async (facing: 'user' | 'environment' = cameraFacing) => {
     try {
       setShowCamera(true);
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
-          facingMode: 'user',
+          facingMode: facing,
           width: { ideal: 1280 },
           height: { ideal: 720 }
         } 
       });
       
       streamRef.current = stream;
+      setCameraFacing(facing);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        await videoRef.current.play();
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
+      // Fallback: try opposite camera if one fails (e.g. desktop with only front cam)
+      if (facing === 'environment') {
+        try {
+          const fallbackStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } 
+          });
+          streamRef.current = fallbackStream;
+          setCameraFacing('user');
+          if (videoRef.current) {
+            videoRef.current.srcObject = fallbackStream;
+            await videoRef.current.play();
+          }
+        } catch (fallbackError) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Camera Error',
+            text: 'Unable to access camera. Please check permissions.',
+            timer: 3000,
+          });
+          setShowCamera(false);
+        }
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Camera Error',
+          text: 'Unable to access camera. Please check permissions.',
+          timer: 3000,
+        });
+        setShowCamera(false);
+      }
+    }
+  };
+
+  const switchCamera = async () => {
+    if (isSwitchingCamera || !streamRef.current) return;
+    setIsSwitchingCamera(true);
+    const newFacing = cameraFacing === 'user' ? 'environment' : 'user';
+    streamRef.current.getTracks().forEach(track => track.stop());
+    streamRef.current = null;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: newFacing,
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } 
+      });
+      streamRef.current = stream;
+      setCameraFacing(newFacing);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+    } catch (error) {
+      console.error('Error switching camera:', error);
       Swal.fire({
         icon: 'error',
-        title: 'Camera Error',
-        text: 'Unable to access camera. Please check permissions.',
-        timer: 3000,
+        title: 'Switch Failed',
+        text: 'Could not switch camera. This device may only have one camera.',
+        timer: 2500,
       });
-      setShowCamera(false);
+      // Restart with original camera
+      await startCamera(cameraFacing);
+    } finally {
+      setIsSwitchingCamera(false);
     }
   };
 
@@ -446,9 +508,25 @@ export default function CustomerModal({
                 ref={videoRef}
                 autoPlay
                 playsInline
+                muted
                 className="w-full h-64 object-cover"
               />
               <canvas ref={canvasRef} className="hidden" />
+              {/* Switch Camera button - only show on devices with multiple cameras (mobile) */}
+              <button
+                type="button"
+                onClick={switchCamera}
+                disabled={isSwitchingCamera}
+                className="absolute top-3 right-3 p-2.5 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all disabled:opacity-50"
+                title={cameraFacing === 'user' ? 'Switch to back camera' : 'Switch to front camera'}
+              >
+                <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+              <span className="absolute bottom-3 left-3 text-white/80 text-xs font-medium bg-black/40 px-2 py-1 rounded">
+                {cameraFacing === 'user' ? 'Front camera' : 'Back camera'}
+              </span>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
