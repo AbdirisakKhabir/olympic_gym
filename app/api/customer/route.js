@@ -63,6 +63,7 @@ export async function POST(req) {
     const weight = formData.get("weight");
     const bmi = formData.get("bmi");
     const standardWeight = formData.get("standardWeight");
+    const shift = formData.get("shift");
 
     // ✅ Validate required fields (phone is now optional)
     if (!name || !registerDate || !fee || !gender) {
@@ -96,6 +97,7 @@ export async function POST(req) {
       weight: weight ? parseFloat(weight) : null,
       bmi: bmi ? parseFloat(bmi) : null,
       standardWeight: standardWeight ? parseFloat(standardWeight) : null,
+      shift: shift && shift.trim() !== "" ? shift.trim() : null,
     };
 
     // ✅ Now we pass proper JS Dates to Prisma

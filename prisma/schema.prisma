@@ -36,7 +36,8 @@ model Customer {
   weight         Float?
   bmi            Float?
   standardWeight Float?
-  payments       Payment[]
+  shift         String?
+  payments      Payment[]
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 }

@@ -10,6 +10,7 @@ export async function GET(request) {
     const search = searchParams.get("search");
     const status = searchParams.get("status");
     const gender = searchParams.get("gender");
+    const shift = searchParams.get("shift");
     const type = searchParams.get("type");
     const expireDate = searchParams.get("expireDate");
     const page = parseInt(searchParams.get("page") || "1");
@@ -121,6 +122,11 @@ export async function GET(request) {
         where.gender = gender;
       }
 
+      // Add shift filter
+      if (shift && shift !== "all") {
+        where.shift = shift;
+      }
+
       // Handle specific expire date filter
       if (expireDate) {
         where.expireDate = expireDate;
@@ -146,6 +152,7 @@ export async function GET(request) {
           weight: true,
           bmi: true,
           standardWeight: true,
+          shift: true,
           createdAt: true,
           updatedAt: true,
           _count: {

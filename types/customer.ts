@@ -13,6 +13,7 @@ export interface Customer {
   weight?: number | null;
   bmi?: number | null;
   standardWeight?: number | null;
+  shift?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }

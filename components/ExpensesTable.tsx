@@ -56,9 +56,9 @@ export default function ExpensesTable({ onAddExpense }: { onAddExpense: () => vo
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-      <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+      <div className="p-4 sm:p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Expenses</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800">Expenses</h2>
           <p className="text-sm text-gray-500 mt-1">View and manage all expenses</p>
         </div>
         <button
@@ -68,7 +68,7 @@ export default function ExpensesTable({ onAddExpense }: { onAddExpense: () => vo
           Add Expense
         </button>
       </div>
-      <div className="p-6 grid grid-cols-2 gap-4 mb-6">
+      <div className="p-4 sm:p-6 grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div className="bg-blue-50 rounded-xl p-4">
           <p className="text-sm text-blue-600 font-medium">Total Expenses</p>
           <p className="text-2xl font-bold text-blue-700">{expenses.length}</p>
@@ -82,10 +82,10 @@ export default function ExpensesTable({ onAddExpense }: { onAddExpense: () => vo
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Amount</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Description</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Amount</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">Description</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -99,19 +99,19 @@ export default function ExpensesTable({ onAddExpense }: { onAddExpense: () => vo
             ) : (
               current.map((e) => (
                 <tr key={e.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 text-sm text-gray-900">{formatDate(e.date || '')}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 whitespace-nowrap">{formatDate(e.date || '')}</td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4">
                     <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{e.type}</span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-semibold text-blue-600">{formatCurrency(e.amount)}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">{e.description || '—'}</td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm font-semibold text-blue-600">{formatCurrency(e.amount)}</td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 max-w-xs truncate hidden md:table-cell">{e.description || '—'}</td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
-      <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-2">
         <p className="text-sm text-gray-600">
           Showing {expenses.length === 0 ? 0 : start + 1}–{Math.min(start + itemsPerPage, expenses.length)} of {expenses.length}
         </p>

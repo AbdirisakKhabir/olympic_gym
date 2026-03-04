@@ -134,13 +134,13 @@ export default function CustomerCard({ customer, isSelected, onSelect, onClick }
       </div>
 
       {/* Customer Image and Main Info */}
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <div className="flex items-center space-x-4 mb-4">
           <div className="relative">
             <img
               src={customer.image || '/api/placeholder/80/80'}
               alt={customer.name}
-              className="w-22 h-22 rounded-xl object-cover border-2 border-gray-200"
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border-2 border-gray-200 flex-shrink-0"
             />
             <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center">
               <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -149,7 +149,7 @@ export default function CustomerCard({ customer, isSelected, onSelect, onClick }
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold text-gray-900 truncate">{customer.name}</h3>
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">{customer.name}</h3>
             <div className="flex items-center mt-1 space-x-2">
               <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
@@ -159,10 +159,17 @@ export default function CustomerCard({ customer, isSelected, onSelect, onClick }
           </div>
         </div>
 
-        {/* Status Badge */}
-        <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor()} mb-4`}>
-          <span className="mr-2">{getStatusIcon()}</span>
-          {getStatusText()}
+        {/* Status & Shift Badges */}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor()}`}>
+            <span className="mr-2">{getStatusIcon()}</span>
+            {getStatusText()}
+          </div>
+          {customer.shift && (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-teal-100 text-teal-800">
+              {customer.shift}
+            </span>
+          )}
         </div>
 
         {/* Dates Section */}

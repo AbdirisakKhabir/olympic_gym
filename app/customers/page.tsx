@@ -216,10 +216,13 @@ function useCustomers() {
   };
 }
 // Custom hook for filters
+const SHIFTS = ['Subaxa', 'Duhurka', 'Galabka', 'Habeenka'] as const;
+
 function useCustomerFilters() {
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [genderFilter, setGenderFilter] = useState<string>('all');
+  const [shiftFilter, setShiftFilter] = useState<string>('all');
 
   const handleFilterChange = useCallback((filter: string) => {
     setSelectedFilter(filter);
@@ -227,6 +230,10 @@ function useCustomerFilters() {
 
   const handleGenderFilter = useCallback((gender: string) => {
     setGenderFilter(gender);
+  }, []);
+
+  const handleShiftFilter = useCallback((shift: string) => {
+    setShiftFilter(shift);
   }, []);
 
   const handleSearch = useCallback((term: string) => {
@@ -238,6 +245,7 @@ function useCustomerFilters() {
     
     if (searchTerm) filters.search = searchTerm;
     if (genderFilter !== 'all') filters.gender = genderFilter;
+    if (shiftFilter !== 'all') filters.shift = shiftFilter;
     
     // Handle date filters
     if (selectedFilter !== 'all') {
@@ -261,14 +269,16 @@ function useCustomerFilters() {
     }
     
     return filters;
-  }, [selectedFilter, searchTerm, genderFilter]);
+  }, [selectedFilter, searchTerm, genderFilter, shiftFilter]);
 
   return {
     selectedFilter,
     searchTerm,
     genderFilter,
+    shiftFilter,
     handleFilterChange,
     handleGenderFilter,
+    handleShiftFilter,
     handleSearch,
     getApiFilters
   };
@@ -292,8 +302,10 @@ export default function CustomersPage() {
     selectedFilter,
     searchTerm,
     genderFilter,
+    shiftFilter,
     handleFilterChange,
     handleGenderFilter,
+    handleShiftFilter,
     handleSearch,
     getApiFilters
   } = useCustomerFilters();
@@ -337,7 +349,7 @@ export default function CustomersPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedFilter, searchTerm, genderFilter]);
+  }, [selectedFilter, searchTerm, genderFilter, shiftFilter]);
 
   // Customer management functions
   const handleEditCustomer = (customer: Customer) => {
@@ -767,6 +779,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
       indigo: 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25',
       pink: 'bg-pink-500 text-white shadow-lg shadow-pink-500/25',
       gray: 'bg-gray-500 text-white shadow-lg shadow-gray-500/25',
+      teal: 'bg-teal-500 text-white shadow-lg shadow-teal-500/25',
     };
     return colorClasses[color as keyof typeof colorClasses] || colorClasses.blue;
   };
@@ -779,6 +792,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
       indigo: 'bg-white text-gray-700 border border-gray-300 hover:border-indigo-300 hover:bg-indigo-50 shadow-sm',
       pink: 'bg-white text-gray-700 border border-gray-300 hover:border-pink-300 hover:bg-pink-50 shadow-sm',
       gray: 'bg-white text-gray-700 border border-gray-300 hover:border-gray-300 hover:bg-gray-50 shadow-sm',
+      teal: 'bg-white text-gray-700 border border-gray-300 hover:border-teal-300 hover:bg-teal-50 shadow-sm',
     };
     return colorClasses[color as keyof typeof colorClasses] || colorClasses.blue;
   };
@@ -827,8 +841,8 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
   if (!isClient) {
     return (
       <AuthWrapper>
-        <div className="fixed left-0 top-0 h-screen w-64 bg-slate-800 animate-pulse" />
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pl-64 p-6">
+        <div className="fixed left-0 top-0 h-screen w-64 bg-slate-800 animate-pulse hidden lg:block" />
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 lg:pl-64 p-4 sm:p-6">
           <div className="max-w-7xl mx-auto animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
             <div className="h-4 bg-gray-200 rounded w-1/3 mb-12"></div>
@@ -869,7 +883,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
       />
 
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 lg:pl-64">
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="p-4 sm:p-6 max-w-7xl mx-auto">
           {/* Mobile menu button */}
           <button
             onClick={() => setIsSidebarOpen(true)}
@@ -881,8 +895,8 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
 
           {/* Loading Overlay */}
           {loading && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
-              <div className="bg-white rounded-2xl p-8 flex items-center space-x-4">
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+              <div className="bg-white rounded-2xl p-6 sm:p-8 flex items-center space-x-4 max-w-[90vw]">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                 <span className="text-gray-700 font-semibold">Loading customers...</span>
               </div>
@@ -890,15 +904,15 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
           )}
 
           {/* Page Header */}
-          <div className="mb-8 pt-12 lg:pt-0">
-            <h1 className="text-2xl font-bold text-gray-800">
+          <div className="mb-6 sm:mb-8 pt-14 sm:pt-12 lg:pt-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
               {activeView === 'dashboard' && 'Dashboard'}
               {activeView === 'members' && 'Members'}
               {activeView === 'payments' && 'Payments'}
               {activeView === 'users' && 'Users'}
               {activeView === 'expenses' && 'Expenses'}
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">
               {activeView === 'dashboard' && 'Overview of your gym performance'}
               {activeView === 'members' && 'Manage your gym members and membership'}
               {activeView === 'payments' && 'All payment transactions'}
@@ -920,7 +934,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
           {activeView === 'expenses' && <ExpensesTable onAddExpense={() => setIsAddExpenseModalOpen(true)} />}
           {activeView === 'members' && (
             <>
-<div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+<div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
     <div 
       className={`bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-lg cursor-pointer transform transition-all duration-200 hover:scale-105 hover:shadow-xl ${
         activeStat === 'active' ? 'ring-4 ring-green-300 ring-opacity-50' : ''
@@ -929,8 +943,8 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-green-100 text-sm font-medium">Active Members</p>
-          <p className="text-3xl font-bold mt-2">{stats.active}</p>
+          <p className="text-green-100 text-xs sm:text-sm font-medium">Active Members</p>
+          <p className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">{stats.active}</p>
         </div>
         <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
           <CheckCircle className="w-7 h-7 text-white" />
@@ -946,8 +960,8 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-blue-100 text-sm font-medium">No Expire Date</p>
-          <p className="text-3xl font-bold mt-2">{stats.noExpireDate}</p>
+          <p className="text-blue-100 text-xs sm:text-sm font-medium">No Expire Date</p>
+          <p className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">{stats.noExpireDate}</p>
         </div>
         <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
           <Users className="w-7 h-7 text-white" />
@@ -963,8 +977,8 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-red-100 text-sm font-medium">Expired</p>
-          <p className="text-3xl font-bold mt-2">{stats.expired}</p>
+          <p className="text-red-100 text-xs sm:text-sm font-medium">Expired</p>
+          <p className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">{stats.expired}</p>
         </div>
         <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
           <Clock className="w-7 h-7 text-white" />
@@ -980,8 +994,8 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-orange-100 text-sm font-medium">Expiring Soon</p>
-          <p className="text-3xl font-bold mt-2">{stats.expiringThisWeek}</p>
+          <p className="text-orange-100 text-xs sm:text-sm font-medium">Expiring Soon</p>
+          <p className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">{stats.expiringThisWeek}</p>
         </div>
         <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
           <AlertTriangle className="w-7 h-7 text-white" />
@@ -990,85 +1004,87 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
     </div>
   </div>
 
-          {/* Search and Filter Section */}
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100 overflow-hidden">
-            <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-100">
-              <Search className="w-5 h-5 text-blue-500" />
-              <h3 className="text-base font-semibold text-gray-800">Search & Filters</h3>
-            </div>
-
-            {/* Search */}
-            <div className="mb-6">
-              <label className="block text-sm font-semibold text-gray-600 mb-3">Search</label>
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+          {/* Search and Filter Section - Compact */}
+          <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 mb-4 border border-gray-100">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-center">
+              {/* Search */}
+              <div className="relative flex-1 min-w-0">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
                   type="text"
-                  placeholder="Search by name or phone number..."
+                  placeholder="Search by name or phone..."
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl 
-                            focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                  className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg 
+                            focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400 
                             bg-gray-50/50 text-gray-900 placeholder-gray-400 
                             transition-all duration-200"
                 />
               </div>
-            </div>
 
-            {/* Filters Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Status Filters */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-3">Status</label>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { label: "All Members", key: "all", color: "blue" as const },
-                    { label: `Today (${getDayName(0)})`, key: "today", color: "red" as const },
-                    { label: `Tomorrow (${getDayName(1)})`, key: "tomorrow", color: "orange" as const },
-                    { label: "Expired", key: "expired", color: "red" as const },
-                  ].map((btn) => (
-                    <button
-                      key={btn.key}
-                      onClick={() => handleFilterChange(btn.key)}
-                      className={`px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 ${
-                        selectedFilter === btn.key
-                          ? getActiveButtonClasses(btn.color)
-                          : getInactiveButtonClasses(btn.color)
-                      }`}
-                    >
-                      {btn.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Gender Filters */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-3">Gender</label>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { label: "All", key: "all", color: "gray" as const },
-                    { label: "Male", key: "male", color: "indigo" as const },
-                    { label: "Female", key: "female", color: "pink" as const },
-                  ].map((btn) => (
-                    <button
-                      key={btn.key}
-                      onClick={() => handleGenderFilter(btn.key)}
-                      className={`px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 ${
-                        genderFilter === btn.key
-                          ? getActiveButtonClasses(btn.color)
-                          : getInactiveButtonClasses(btn.color)
-                      }`}
-                    >
-                      {btn.label}
-                    </button>
-                  ))}
-                </div>
+              {/* Filters - Compact pills */}
+              <div className="flex flex-wrap gap-1.5 sm:gap-2 items-center">
+                <span className="text-xs font-medium text-gray-500 mr-1 hidden sm:inline">Status</span>
+                {[
+                  { label: "All", key: "all", color: "blue" as const },
+                  { label: `Today`, key: "today", color: "red" as const },
+                  { label: `Tomorrow`, key: "tomorrow", color: "orange" as const },
+                  { label: "Expired", key: "expired", color: "red" as const },
+                ].map((btn) => (
+                  <button
+                    key={btn.key}
+                    onClick={() => handleFilterChange(btn.key)}
+                    className={`px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-200 ${
+                      selectedFilter === btn.key
+                        ? getActiveButtonClasses(btn.color)
+                        : getInactiveButtonClasses(btn.color)
+                    }`}
+                  >
+                    {btn.label}
+                  </button>
+                ))}
+                <span className="text-xs font-medium text-gray-500 mx-1 sm:ml-2 sm:mr-1 hidden sm:inline">|</span>
+                <span className="text-xs font-medium text-gray-500 mr-1 hidden sm:inline">Gender</span>
+                {[
+                  { label: "All", key: "all", color: "gray" as const },
+                  { label: "M", key: "male", color: "indigo" as const },
+                  { label: "F", key: "female", color: "pink" as const },
+                ].map((btn) => (
+                  <button
+                    key={btn.key}
+                    onClick={() => handleGenderFilter(btn.key)}
+                    className={`px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-200 ${
+                      genderFilter === btn.key
+                        ? getActiveButtonClasses(btn.color)
+                        : getInactiveButtonClasses(btn.color)
+                    }`}
+                  >
+                    {btn.label}
+                  </button>
+                ))}
+                <span className="text-xs font-medium text-gray-500 mx-1 sm:ml-2 sm:mr-1 hidden sm:inline">|</span>
+                <span className="text-xs font-medium text-gray-500 mr-1 hidden sm:inline">Shift</span>
+                {[
+                  { label: "All", key: "all", color: "gray" as const },
+                  ...SHIFTS.map((s) => ({ label: s, key: s, color: "teal" as const })),
+                ].map((btn) => (
+                  <button
+                    key={btn.key}
+                    onClick={() => handleShiftFilter(btn.key)}
+                    className={`px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-200 ${
+                      shiftFilter === btn.key
+                        ? getActiveButtonClasses(btn.color)
+                        : getInactiveButtonClasses(btn.color)
+                    }`}
+                  >
+                    {btn.label}
+                  </button>
+                ))}
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap gap-4 mt-6 pt-6 border-t border-gray-100">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 mt-4 pt-4 border-t border-gray-100">
               {selectedCustomers.length > 0 && (
                 <>
                   {/* Renew Button */}
@@ -1076,12 +1092,12 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
                     onClick={() => setIsRenewalModalOpen(true)}
                     className="bg-gradient-to-r from-green-500 to-green-600 
                               hover:from-green-600 hover:to-green-700 text-white 
-                              px-6 py-4 rounded-xl font-bold transition-all duration-200 
-                              shadow-lg shadow-green-500/25 flex items-center space-x-2 
-                              transform hover:scale-105"
+                              px-4 py-2.5 rounded-lg font-semibold transition-all duration-200 
+                              shadow-md shadow-green-500/20 flex items-center justify-center space-x-2 
+                              hover:shadow-lg text-sm w-full sm:w-auto"
                   >
-                    <RefreshCw className="w-5 h-5" />
-                    <span>Renew Selected ({selectedCustomers.length})</span>
+                    <RefreshCw className="w-4 h-4" />
+                    <span>Renew ({selectedCustomers.length})</span>
                   </button>
 
                   {/* WhatsApp Button */}
@@ -1089,12 +1105,12 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
                     onClick={handleWhatsAppMessage}
                     className="bg-gradient-to-r from-emerald-500 to-green-600 
                               hover:from-emerald-600 hover:to-green-700 text-white 
-                              px-6 py-4 rounded-xl font-bold transition-all duration-200 
-                              shadow-lg shadow-green-500/25 flex items-center space-x-2 
-                              transform hover:scale-105"
+                              px-4 py-2.5 rounded-lg font-semibold transition-all duration-200 
+                              shadow-md shadow-green-500/20 flex items-center justify-center space-x-2 
+                              hover:shadow-lg text-sm w-full sm:w-auto"
                   >
-                    <MessageCircle className="w-5 h-5" />
-                    <span>Send Notification ({selectedCustomers.length})</span>
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Notify ({selectedCustomers.length})</span>
                   </button>
                 </>
               )}
@@ -1160,7 +1176,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
 
           {/* Pagination Controls */}
           {pagination.totalPages > 1 && (
-            <div className="flex justify-center items-center space-x-4 mt-8">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 mt-6 sm:mt-8 overflow-x-auto">
               <button
                 onClick={() => paginate(pagination.currentPage - 1)}
                 disabled={!pagination.hasPrev || loading}
@@ -1267,7 +1283,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
               <div className="text-gray-400 text-8xl mb-6">💪</div>
               <h3 className="text-2xl font-bold text-gray-600 mb-2">No members found</h3>
               <p className="text-gray-500 max-w-md mx-auto">
-                {searchTerm || selectedFilter !== 'all' || genderFilter !== 'all'
+                {searchTerm || selectedFilter !== 'all' || genderFilter !== 'all' || shiftFilter !== 'all'
                   ? 'Try adjusting your search or filter criteria' 
                   : 'Get started by adding your first gym member'
                 }

@@ -91,9 +91,9 @@ export default function UsersTable({ onAddUser }: { onAddUser: () => void }) {
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-      <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+      <div className="p-4 sm:p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Users</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800">Users</h2>
           <p className="text-sm text-gray-500 mt-1">Manage system users and roles</p>
         </div>
         <button
@@ -107,10 +107,10 @@ export default function UsersTable({ onAddUser }: { onAddUser: () => void }) {
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Username</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Role</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Created</th>
-              <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Username</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Role</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider hidden sm:table-cell">Created</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -124,14 +124,14 @@ export default function UsersTable({ onAddUser }: { onAddUser: () => void }) {
             ) : (
               currentUsers.map((u) => (
                 <tr key={u.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-900">{u.username}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 font-medium text-gray-900">{u.username}</td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadge(u.role)}`}>
                       {u.role.charAt(0).toUpperCase() + u.role.slice(1)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{formatDate(u.createdAt)}</td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden sm:table-cell">{formatDate(u.createdAt)}</td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
                     <button
                       onClick={() => handleDelete(u.id, u.username)}
                       disabled={deletingId === u.id}
@@ -146,7 +146,7 @@ export default function UsersTable({ onAddUser }: { onAddUser: () => void }) {
           </tbody>
         </table>
       </div>
-      <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-2">
         <p className="text-sm text-gray-600">
           Showing {users.length === 0 ? 0 : start + 1}–{Math.min(start + itemsPerPage, users.length)} of {users.length} users
         </p>

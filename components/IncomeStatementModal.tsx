@@ -112,13 +112,13 @@ export default function IncomeStatementModal({ isOpen, onClose }: IncomeStatemen
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden my-4">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-bold">Income Statement</h2>
+        <div className="p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+          <div className="flex justify-between items-start sm:items-center gap-2">
+            <div className="min-w-0">
+              <h2 className="text-xl sm:text-2xl font-bold">Income Statement</h2>
               <p className="text-blue-100 mt-1">Revenue, expenses, and net income for a period</p>
             </div>
             <button
@@ -132,7 +132,7 @@ export default function IncomeStatementModal({ isOpen, onClose }: IncomeStatemen
 
         {/* Filters */}
         <div className="p-6 border-b border-gray-200 bg-gray-50">
-          <div className="flex flex-wrap gap-4 items-end">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-4 items-stretch sm:items-end">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Start Date *</label>
               <input

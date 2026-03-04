@@ -20,6 +20,8 @@ export default function CustomerModal({
 }: CustomerModalProps) {
   const isEditMode = Boolean(customer);
   
+  const SHIFTS = ['Subaxa', 'Duhurka', 'Galabka', 'Habeenka'] as const;
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -27,6 +29,7 @@ export default function CustomerModal({
     expireDate: '',
     fee: '',
     gender: 'male',
+    shift: '',
     image: '',
     height: '',
     weight: '',
@@ -53,6 +56,7 @@ export default function CustomerModal({
           expireDate: customer.expireDate ? new Date(customer.expireDate).toISOString().split('T')[0] : '',
           fee: customer.fee.toString(),
           gender: customer.gender,
+          shift: customer.shift || '',
           image: customer.image || '',
           height: customer.height != null ? String(customer.height) : '',
           weight: customer.weight != null ? String(customer.weight) : '',
@@ -69,6 +73,7 @@ export default function CustomerModal({
           expireDate: '',
           fee: '',
           gender: 'male',
+          shift: '',
           image: '',
           height: '',
           weight: '',
@@ -258,6 +263,7 @@ export default function CustomerModal({
 
       submitFormData.append("fee", formData.fee);
       submitFormData.append("gender", formData.gender);
+      if (formData.shift) submitFormData.append("shift", formData.shift);
 
       submitFormData.append("height", formData.height);
       submitFormData.append("weight", formData.weight);
@@ -355,6 +361,7 @@ export default function CustomerModal({
           expireDate: formData.expireDate ? new Date(formData.expireDate + "T00:00:00.000Z") : null,
           fee: parseFloat(formData.fee),
           gender: formData.gender,
+          shift: formData.shift || null,
           image: formData.image,
           isActive: customer.isActive,
           height: formData.height ? parseFloat(formData.height) : null,
@@ -382,6 +389,7 @@ export default function CustomerModal({
           expireDate: formData.expireDate ? new Date(formData.expireDate + "T00:00:00.000Z") : null,
           fee: parseFloat(formData.fee),
           gender: formData.gender,
+          shift: formData.shift || null,
           balance: 0,
           image: formData.image,
           isActive: true,
@@ -416,7 +424,7 @@ export default function CustomerModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-gray-900 bg-opacity-10 flex items-center justify-center p-4 z-50 backdrop-blur-[1px]">
+    <div className="fixed inset-0 bg-gray-900 bg-opacity-10 flex items-center justify-center p-2 sm:p-4 z-50 backdrop-blur-[1px] overflow-y-auto">
       {/* Camera Modal */}
       {showCamera && (
         <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-60 p-4">
@@ -443,7 +451,7 @@ export default function CustomerModal({
               <canvas ref={canvasRef} className="hidden" />
             </div>
             
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button
                 type="button"
                 onClick={stopCamera}
@@ -468,7 +476,7 @@ export default function CustomerModal({
       )}
 
       {/* Main Modal */}
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden relative">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden relative my-4 sm:my-0">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -481,8 +489,8 @@ export default function CustomerModal({
         </button>
 
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">
+        <div className="p-4 sm:p-6 border-b border-gray-200">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
             {isEditMode ? 'Edit Member' : 'Add New Member'}
           </h2>
           <p className="text-gray-600 mt-2">
@@ -490,7 +498,7 @@ export default function CustomerModal({
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-8 max-h-[60vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-8 space-y-6 sm:space-y-8 max-h-[60vh] overflow-y-auto">
           {/* Image Upload Section */}
           <div className="text-center">
             <div className="relative inline-block">
@@ -636,6 +644,24 @@ export default function CustomerModal({
               >
                 <option value="male">Male</option>
                 <option value="female">Female</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Shift <span className="text-gray-500 font-normal">(Optional)</span>
+              </label>
+              <select
+                name="shift"
+                value={formData.shift}
+                onChange={handleChange}
+                disabled={isLoading}
+                className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-lg text-gray-900 bg-white disabled:opacity-50"
+              >
+                <option value="">Select shift</option>
+                {SHIFTS.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
               </select>
             </div>
 

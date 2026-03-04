@@ -59,11 +59,11 @@ export default function PaymentsTable() {
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-      <div className="p-6 border-b border-gray-100">
+      <div className="p-4 sm:p-6 border-b border-gray-100">
         <h2 className="text-xl font-bold text-gray-800">Payments</h2>
         <p className="text-sm text-gray-500 mt-1">All payment transactions</p>
       </div>
-      <div className="p-6 grid grid-cols-2 gap-4 mb-6">
+      <div className="p-4 sm:p-6 grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div className="bg-blue-50 rounded-xl p-4">
           <p className="text-sm text-blue-600 font-medium">Total Payments</p>
           <p className="text-2xl font-bold text-blue-700">{payments.length}</p>
@@ -77,18 +77,18 @@ export default function PaymentsTable() {
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Amount</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Discount</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Balance</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Processed By</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Amount</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">Discount</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">Balance</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider hidden lg:table-cell">Processed By</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {current.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={6} className="px-4 sm:px-6 py-8 sm:py-12 text-center text-gray-500">
                   <CreditCard className="w-12 h-12 mx-auto mb-2 text-gray-400" />
                   No payments recorded yet.
                 </td>
@@ -96,22 +96,22 @@ export default function PaymentsTable() {
             ) : (
               current.map((p) => (
                 <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 text-sm text-gray-900">{formatDate(p.date)}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 whitespace-nowrap">{formatDate(p.date)}</td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4">
                     <p className="font-medium text-gray-900">{p.customer.name}</p>
                     <p className="text-xs text-gray-500">{p.customer.phone || '—'}</p>
                   </td>
-                  <td className="px-6 py-4 text-sm font-semibold text-blue-600">{formatCurrency(p.paidAmount)}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{formatCurrency(p.discount)}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{formatCurrency(p.balance)}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{p.user.username}</td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm font-semibold text-blue-600">{formatCurrency(p.paidAmount)}</td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden md:table-cell">{formatCurrency(p.discount)}</td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden md:table-cell">{formatCurrency(p.balance)}</td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden lg:table-cell">{p.user.username}</td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
-      <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-2">
         <p className="text-sm text-gray-600">
           Showing {payments.length === 0 ? 0 : start + 1}–{Math.min(start + itemsPerPage, payments.length)} of {payments.length}
         </p>
