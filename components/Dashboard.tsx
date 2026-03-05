@@ -27,6 +27,7 @@ interface DashboardStats {
     revenue: number;
     expenses: number;
     netIncome: number;
+    totalBalances?: number;
   };
   period: {
     month: string;
@@ -191,27 +192,42 @@ export default function Dashboard({
         <h2 className="text-lg font-semibold text-gray-800 mb-4">
           {period.month} {period.year} Financials
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-green-600" />
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Revenue</p>
-                <p className="text-2xl font-bold text-blue-600">{formatCurrency(financials.revenue)}</p>
+                <p className="text-2xl font-bold text-green-600">{formatCurrency(financials.revenue)}</p>
+                <p className="text-xs text-gray-400 mt-0.5">This month</p>
               </div>
             </div>
           </div>
 
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                <TrendingDown className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                <DollarSign className="w-6 h-6 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Total Balances</p>
+                <p className="text-2xl font-bold text-amber-600">{formatCurrency(financials.totalBalances ?? 0)}</p>
+                <p className="text-xs text-gray-400 mt-0.5">Owed by members</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
+                <TrendingDown className="w-6 h-6 text-red-600" />
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Expenses</p>
-                <p className="text-2xl font-bold text-blue-600">{formatCurrency(financials.expenses)}</p>
+                <p className="text-2xl font-bold text-red-600">{formatCurrency(financials.expenses)}</p>
+                <p className="text-xs text-gray-400 mt-0.5">This month</p>
               </div>
             </div>
           </div>

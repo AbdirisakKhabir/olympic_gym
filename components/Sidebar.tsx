@@ -12,6 +12,7 @@ import {
   X,
   UserCircle,
   LayoutDashboard,
+  Settings,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -27,6 +28,7 @@ interface SidebarProps {
   onIncomeStatement: () => void;
   onAddExpense: () => void;
   onExpensesList: () => void;
+  onSettings: () => void;
   onLogout: () => void;
   isOpen?: boolean;
   onToggle?: () => void;
@@ -44,6 +46,7 @@ export default function Sidebar({
   onIncomeStatement,
   onAddExpense,
   onExpensesList,
+  onSettings,
   onLogout,
   isOpen = true,
   onToggle,
@@ -236,6 +239,15 @@ export default function Sidebar({
             </div>
           )}
         </div>
+
+        {/* Settings */}
+        <button
+          onClick={onSettings}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-200 hover:bg-white/5 transition-colors mb-2"
+        >
+          <Settings className="w-5 h-5 text-blue-400" />
+          <span className="font-medium">Settings</span>
+        </button>
       </div>
 
       {/* Logout */}

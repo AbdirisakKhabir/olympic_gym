@@ -322,6 +322,12 @@ export default function CustomerDetailModal({
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Membership Summary</h4>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
+                <p className="text-gray-600">Balance Owed</p>
+                <p className={`text-lg font-semibold ${(customer.balance ?? 0) > 0 ? 'text-amber-600' : 'text-gray-900'}`}>
+                  ${Number(customer.balance ?? 0).toFixed(2)}
+                </p>
+              </div>
+              <div>
                 <p className="text-gray-600">Member ID</p>
                 <p className="font-semibold text-gray-900">{customer.id}</p>
               </div>

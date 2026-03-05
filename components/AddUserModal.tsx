@@ -1,5 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+
+interface Role {
+  id: number;
+  name: string;
+  description: string | null;
+}
 
 interface User {
   id: string;
@@ -22,7 +28,23 @@ export default function AddUserModal({ isOpen, onClose, onAdd }: AddUserModalPro
     role: 'staff'
   });
 
+  const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/roles')
+      .then((res) => res.ok ? res.json() : [])
+      .then((data) => {
+        setRoles(data);
+        if (data.length > 0) {
+          setFormData((prev) => {
+            const hasCurrent = data.some((r: Role) => r.name === prev.role);
+            return hasCurrent ? prev : { ...prev, role: data[0].name };
+          });
+        }
+      })
+      .catch(() => setRoles([]));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,18 +182,19 @@ export default function AddUserModal({ isOpen, onClose, onAdd }: AddUserModalPro
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Role *
             </label>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              required
-              disabled={isLoading}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-200 disabled:opacity-50"
-            >
-              <option value="staff">Staff</option>
-              <option value="admin">Admin</option>
-              <option value="manager">Manager</option>
-            </select>
+<select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                required
+                disabled={isLoading}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-200 disabled:opacity-50"
+              >
+                {roles.length === 0 && <option value="staff">Staff</option>}
+                {roles.map((r) => (
+                  <option key={r.id} value={r.name}>{r.name.charAt(0).toUpperCase() + r.name.slice(1)}</option>
+                ))}
+              </select>
           </div>
 
           <div>

@@ -54,25 +54,31 @@ export async function POST(
       );
     }
 
+    // Calculate new balance: amountDue = existingBalance + fee, newBalance = amountDue - paidAmount - discount
+    const numericDiscount = 0;
+    const amountDue = (existingCustomer.balance ?? 0) + existingCustomer.fee;
+    const newBalance = Math.max(0, amountDue - numericPaidAmount - numericDiscount);
+
     // Update customer record
     const updatedCustomer = await prisma.customer.update({
       where: { id: customerId },
       data: {
         expireDate: newExpireDate,
         fee: numericPaidAmount,
+        balance: newBalance,
         isActive: true,
         updatedAt: new Date(),
       },
     });
 
-    // Create new payment record
+    // Create new payment record (balance = customer balance after this payment)
     const payment = await prisma.payment.create({
       data: {
         customerId: customerId,
         userId: numericUserId,
         paidAmount: numericPaidAmount,
-        discount: 0,
-        balance: existingCustomer.balance,
+        discount: numericDiscount,
+        balance: newBalance,
         date: new Date(),
       },
     });

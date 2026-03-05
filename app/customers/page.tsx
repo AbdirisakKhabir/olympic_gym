@@ -21,6 +21,7 @@ import ExpenseReportModal from '@/components/ExpenseReportModal';
 import IncomeStatementModal from '@/components/IncomeStatementModal';
 import Sidebar from '@/components/Sidebar';
 import Dashboard from '@/components/Dashboard';
+import Settings from '@/components/Settings';
 
 // Payment types
 interface Payment {
@@ -327,7 +328,7 @@ export default function CustomersPage() {
   const [isExpenseReportModalOpen, setIsExpenseReportModalOpen] = useState(false);
   const [isIncomeStatementModalOpen, setIsIncomeStatementModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeView, setActiveView] = useState<'dashboard' | 'members' | 'payments' | 'users' | 'expenses'>('dashboard');
+  const [activeView, setActiveView] = useState<'dashboard' | 'members' | 'payments' | 'users' | 'expenses' | 'settings'>('dashboard');
   // Add this state to track which stat is active
  
   // Add this state to track which stat is activ
@@ -877,6 +878,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
         onIncomeStatement={() => { setIsIncomeStatementModalOpen(true); setIsSidebarOpen(false); }}
         onAddExpense={() => { setIsAddExpenseModalOpen(true); setIsSidebarOpen(false); }}
         onExpensesList={() => { setActiveView('expenses'); setIsSidebarOpen(false); }}
+        onSettings={() => { setActiveView('settings'); setIsSidebarOpen(false); }}
         onLogout={handleLogout}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen((prev) => !prev)}
@@ -911,6 +913,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
               {activeView === 'payments' && 'Payments'}
               {activeView === 'users' && 'Users'}
               {activeView === 'expenses' && 'Expenses'}
+              {activeView === 'settings' && 'Settings'}
             </h1>
             <p className="text-gray-600 mt-1 text-sm sm:text-base">
               {activeView === 'dashboard' && 'Overview of your gym performance'}
@@ -918,6 +921,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
               {activeView === 'payments' && 'All payment transactions'}
               {activeView === 'users' && 'Manage system users and roles'}
               {activeView === 'expenses' && 'View and manage all expenses'}
+              {activeView === 'settings' && 'Roles, permissions, and user access'}
             </p>
           </div>
 
@@ -932,6 +936,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
           {activeView === 'payments' && <PaymentsTable />}
           {activeView === 'users' && <UsersTable onAddUser={() => setIsAddUserModalOpen(true)} />}
           {activeView === 'expenses' && <ExpensesTable onAddExpense={() => setIsAddExpenseModalOpen(true)} />}
+          {activeView === 'settings' && <Settings />}
           {activeView === 'members' && (
             <>
 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">

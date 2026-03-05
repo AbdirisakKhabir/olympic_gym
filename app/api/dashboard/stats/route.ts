@@ -23,6 +23,7 @@ export async function GET() {
       noExpireDate,
       monthlyPayments,
       monthlyExpenses,
+      totalBalances,
     ] = await Promise.all([
       prisma.customer.count(),
       prisma.customer.count({
@@ -54,11 +55,15 @@ export async function GET() {
         },
         _sum: { amount: true },
       }),
+      prisma.customer.aggregate({
+        _sum: { balance: true },
+      }),
     ]);
 
     const revenue = monthlyPayments._sum.paidAmount ?? 0;
     const expenses = monthlyExpenses._sum.amount ?? 0;
     const netIncome = revenue - expenses;
+    const totalBalancesAmount = totalBalances._sum.balance ?? 0;
 
     return NextResponse.json({
       members: {
@@ -72,6 +77,7 @@ export async function GET() {
         revenue,
         expenses,
         netIncome,
+        totalBalances: totalBalancesAmount,
       },
       period: {
         month: today.toLocaleString("default", { month: "long" }),

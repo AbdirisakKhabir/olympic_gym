@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start"
+    "start": "next start",
+    "db:push": "prisma db push",
+    "db:seed-roles": "node prisma/seed-roles-permissions.js"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",

@@ -190,7 +190,10 @@ export default function RenewalModal({
                       <div>
                         <h3 className="font-semibold text-gray-900">{customer.name}</h3>
                         <p className="text-sm text-gray-500">
-                          {customer.phone || 'No phone number'} • Fee: ${customer.fee}
+                          {customer.phone || 'No phone number'} • Fee: ${Number(customer.fee).toFixed(2)}
+                          {(customer.balance ?? 0) > 0 && (
+                            <span className="text-amber-600 font-medium"> • Balance: ${Number(customer.balance).toFixed(2)}</span>
+                          )}
                         </p>
                       </div>
                     </div>
@@ -232,7 +235,8 @@ export default function RenewalModal({
                         />
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
-                        Standard fee: ${customer.fee}
+                        Amount due: ${((customer.balance ?? 0) + Number(customer.fee)).toFixed(2)}
+                        {(customer.balance ?? 0) > 0 && <span> (balance ${Number(customer.balance).toFixed(2)} + fee ${Number(customer.fee).toFixed(2)})</span>}
                       </p>
                     </div>
 

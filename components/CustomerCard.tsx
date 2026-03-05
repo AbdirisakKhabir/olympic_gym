@@ -198,12 +198,22 @@ export default function CustomerCard({ customer, isSelected, onSelect, onClick }
             </p>
           </div>
 
-          {/* Membership Duration */}
-          <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-            <span className="text-xs font-medium text-gray-500">Membership:</span>
-            <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
-              {getMembershipDuration()}
-            </span>
+          {/* Membership Duration & Balance */}
+          <div className="space-y-2 pt-2 border-t border-gray-100">
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-medium text-gray-500">Membership:</span>
+              <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                {getMembershipDuration()}
+              </span>
+            </div>
+            {(customer.balance != null && customer.balance > 0) && (
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-medium text-gray-500">Balance:</span>
+                <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                  ${Number(customer.balance).toFixed(2)}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
