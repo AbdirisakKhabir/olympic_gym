@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { Users, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import EditUserModal from './EditUserModal';
 
 interface User {
   id: number;
@@ -18,6 +19,8 @@ export default function UsersTable({ onAddUser }: { onAddUser: () => void }) {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -90,7 +93,8 @@ export default function UsersTable({ onAddUser }: { onAddUser: () => void }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+    <>
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
       <div className="p-4 sm:p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
         <div>
           <h2 className="text-lg sm:text-xl font-bold text-gray-800">Users</h2>
@@ -131,7 +135,16 @@ export default function UsersTable({ onAddUser }: { onAddUser: () => void }) {
                     </span>
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden sm:table-cell">{formatDate(u.createdAt)}</td>
-                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-right space-x-2">
+                    <button
+                      onClick={() => {
+                        setEditingUser(u);
+                        setIsEditOpen(true);
+                      }}
+                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg text-sm font-medium"
+                    >
+                      Edit
+                    </button>
                     <button
                       onClick={() => handleDelete(u.id, u.username)}
                       disabled={deletingId === u.id}
@@ -170,6 +183,16 @@ export default function UsersTable({ onAddUser }: { onAddUser: () => void }) {
           </button>
         </div>
       </div>
-    </div>
+
+      <EditUserModal
+        isOpen={isEditOpen}
+        onClose={() => {
+          setIsEditOpen(false);
+          setEditingUser(null);
+        }}
+        user={editingUser}
+        onUpdated={fetchUsers}
+      />
+    </>
   );
 }
