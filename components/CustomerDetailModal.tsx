@@ -71,7 +71,7 @@ export default function CustomerDetailModal({
       setPaymentPaid('');
       setPaymentDiscount('0');
     }
-  }, [isOpen, customer?.id]);
+  }, [isOpen, customer?.id, customer?.balance]);
 
   // ✅ MOVED: Conditional return to the END, after all hooks
   if (!isOpen || !customer) return null;
@@ -478,6 +478,11 @@ export default function CustomerDetailModal({
               <span className="mr-2">💵</span>
               Record Payment
             </h4>
+            {/* Existing balance - always visible */}
+            <div className="mb-4 p-3 rounded-lg bg-white border border-amber-200">
+              <p className="text-sm font-medium text-gray-600">Current balance (owed)</p>
+              <p className="text-xl font-bold text-amber-700">${Number(customer.balance ?? 0).toFixed(2)}</p>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Amount due ($)</label>
@@ -517,7 +522,7 @@ export default function CustomerDetailModal({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">New balance</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">New balance (after payment)</label>
                 <p className="px-3 py-2 rounded-lg bg-white border border-gray-200 font-semibold text-gray-900">
                   ${calculatedNewBalance.toFixed(2)}
                 </p>

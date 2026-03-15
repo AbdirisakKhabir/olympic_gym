@@ -90,7 +90,7 @@ export default function Dashboard({
   }
 
   const { members, financials, period } = stats;
-  const showFinancials = userRole !== 'staff';
+  const showFinancials = userRole === 'admin';
 
   return (
     <div className="space-y-8">
