@@ -42,6 +42,8 @@ export default function CustomerDetailModal({
   const [paymentPaid, setPaymentPaid] = useState('');
   const [paymentDiscount, setPaymentDiscount] = useState('');
   const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
+  const [imageZoomOpen, setImageZoomOpen] = useState(false);
+  const [imageZoomScale, setImageZoomScale] = useState(1);
 
   useEffect(() => {
     const fetchPayments = async () => {
@@ -72,6 +74,15 @@ export default function CustomerDetailModal({
       setPaymentDiscount('0');
     }
   }, [isOpen, customer?.id, customer?.balance]);
+
+  useEffect(() => {
+    if (!imageZoomOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setImageZoomOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [imageZoomOpen]);
 
   // ✅ MOVED: Conditional return to the END, after all hooks
   if (!isOpen || !customer) return null;
@@ -258,6 +269,7 @@ export default function CustomerDetailModal({
   };
 
   return (
+    <>
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50 backdrop-blur-sm overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden my-auto">
         {/* Header */}
@@ -281,11 +293,21 @@ export default function CustomerDetailModal({
         <div className="p-4 sm:p-6 max-h-[60vh] overflow-y-auto">
           {/* Customer Profile */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-6">
-            <img
-              src={customer.image || '/api/placeholder/200/200'}
-              alt={customer.name}
-              className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-2xl object-cover border-4 border-gray-200 shadow-lg shrink-0"
-            />
+            <button
+              type="button"
+              onClick={() => { setImageZoomOpen(true); setImageZoomScale(1); }}
+              className="relative shrink-0 rounded-2xl border-4 border-gray-200 shadow-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              aria-label="View full size (zoom)"
+            >
+              <img
+                src={customer.image || '/api/placeholder/200/200'}
+                alt={customer.name}
+                className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 object-cover block"
+              />
+              <span className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/20 transition-colors text-white text-xs font-medium opacity-0 hover:opacity-100">
+                Zoom
+              </span>
+            </button>
             <div className="flex-1 text-center sm:text-left w-full">
               <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 break-words">{customer.name}</h3>
               <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 sm:gap-4 text-gray-600">
@@ -591,5 +613,67 @@ export default function CustomerDetailModal({
         </div>
       </div>
     </div>
+
+    {/* Image Zoom Overlay */}
+    {imageZoomOpen && customer && (
+      <div
+        className="fixed inset-0 z-[100] bg-black/80 flex flex-col items-center justify-center p-4 overflow-hidden"
+        onClick={() => setImageZoomOpen(false)}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Image zoom"
+      >
+        <div
+          className="relative max-w-full max-h-full flex items-center justify-center overflow-auto"
+          onClick={(e) => e.stopPropagation()}
+          onWheel={(e) => {
+            e.preventDefault();
+            if (e.deltaY < 0) setImageZoomScale((s) => Math.min(3, s + 0.15));
+            else setImageZoomScale((s) => Math.max(0.5, s - 0.15));
+          }}
+        >
+          <img
+            src={customer.image || '/api/placeholder/200/200'}
+            alt={customer.name}
+            className="max-w-full max-h-[85vh] w-auto h-auto object-contain rounded-lg shadow-2xl transition-transform duration-200"
+            style={{ transform: `scale(${imageZoomScale})` }}
+            onClick={(e) => e.stopPropagation()}
+            draggable={false}
+          />
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-4">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setImageZoomScale((s) => Math.max(0.5, s - 0.25)); }}
+            className="px-4 py-2 bg-white/90 hover:bg-white text-gray-800 rounded-xl font-semibold shadow-lg transition-colors"
+          >
+            Zoom Out
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setImageZoomScale((s) => Math.min(3, s + 0.25)); }}
+            className="px-4 py-2 bg-white/90 hover:bg-white text-gray-800 rounded-xl font-semibold shadow-lg transition-colors"
+          >
+            Zoom In
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setImageZoomScale(1); }}
+            className="px-4 py-2 bg-white/90 hover:bg-white text-gray-800 rounded-xl font-semibold shadow-lg transition-colors"
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            onClick={() => setImageZoomOpen(false)}
+            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold shadow-lg transition-colors"
+          >
+            Close
+          </button>
+        </div>
+        <p className="text-white/80 text-sm mt-2">Click outside or Close to exit</p>
+      </div>
+    )}
+    </>
   );
 }

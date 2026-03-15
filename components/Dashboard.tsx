@@ -91,6 +91,7 @@ export default function Dashboard({
 
   const { members, financials, period } = stats;
   const showFinancials = userRole === 'admin';
+  const showMemberCounts = userRole === 'admin';
 
   return (
     <div className="space-y-8">
@@ -135,7 +136,7 @@ export default function Dashboard({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">Active Members</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{members.active}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{showMemberCounts ? members.active : '—'}</p>
               </div>
               <div className="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <CheckCircle className="w-7 h-7 text-green-600" />
@@ -150,7 +151,7 @@ export default function Dashboard({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">Expiring Soon</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{members.expiringSoon}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{showMemberCounts ? members.expiringSoon : '—'}</p>
               </div>
               <div className="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <AlertTriangle className="w-7 h-7 text-orange-600" />
@@ -165,7 +166,7 @@ export default function Dashboard({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">Expired</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{members.expired}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{showMemberCounts ? members.expired : '—'}</p>
               </div>
               <div className="w-14 h-14 rounded-2xl bg-red-100 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Clock className="w-7 h-7 text-red-600" />
@@ -180,7 +181,7 @@ export default function Dashboard({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">Total Members</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{members.total}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{showMemberCounts ? members.total : '—'}</p>
               </div>
               <div className="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Users className="w-7 h-7 text-blue-600" />
