@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/lib/auth";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 export async function POST(request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.role || session.user.role !== "admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const body = await request.json();
     const {
@@ -11,51 +17,64 @@ export async function POST(request) {
       userId,
       paidAmount,
       discount = 0,
-      balance,
+      amountDue,
       date,
     } = body;
 
-    // Validate required fields
-    if (
-      !customerId ||
-      !userId ||
-      paidAmount === undefined ||
-      balance === undefined
-    ) {
+    if (!customerId || !userId || paidAmount === undefined) {
       return NextResponse.json(
-        {
-          error: "Customer ID, User ID, paid amount, and balance are required",
-        },
+        { error: "Customer ID, User ID, and paid amount are required" },
         { status: 400 }
       );
     }
 
-    // Create payment
-    const newPayment = await prisma.payment.create({
-      data: {
-        customerId: parseInt(customerId),
-        userId: parseInt(userId),
-        paidAmount: parseFloat(paidAmount),
-        discount: parseFloat(discount),
-        balance: parseFloat(balance),
-        date: date ? new Date(date) : new Date(),
-      },
-      include: {
-        customer: {
-          select: {
-            name: true,
-            phone: true,
-          },
+    const custId = parseInt(customerId);
+    const uid = parseInt(userId);
+    const paid = parseFloat(paidAmount);
+    const disc = parseFloat(discount) || 0;
+
+    const customer = await prisma.customer.findUnique({
+      where: { id: custId },
+    });
+    if (!customer) {
+      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+    }
+
+    const due = amountDue !== undefined && amountDue !== null && amountDue !== ""
+      ? parseFloat(amountDue)
+      : (customer.balance ?? 0);
+    const newBalance = Math.max(0, due - paid - disc);
+    const paymentDate = date ? new Date(date) : new Date();
+
+    const [, newPayment] = await prisma.$transaction([
+      prisma.customer.update({
+        where: { id: custId },
+        data: { balance: newBalance, updatedAt: new Date() },
+      }),
+      prisma.payment.create({
+        data: {
+          customerId: custId,
+          userId: uid,
+          paidAmount: paid,
+          discount: disc,
+          balance: newBalance,
+          date: paymentDate,
         },
-        user: {
-          select: {
-            username: true,
-          },
+        include: {
+          customer: { select: { name: true, phone: true } },
+          user: { select: { username: true } },
         },
-      },
+      }),
+    ]);
+
+    const updatedCustomer = await prisma.customer.findUnique({
+      where: { id: custId },
     });
 
-    return NextResponse.json(newPayment, { status: 201 });
+    return NextResponse.json(
+      { payment: newPayment, customer: updatedCustomer },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error creating payment:", error);
 
@@ -74,6 +93,10 @@ export async function POST(request) {
 }
 
 export async function GET() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.role || session.user.role !== "admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const payments = await prisma.payment.findMany({
       include: {

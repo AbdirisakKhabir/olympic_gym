@@ -32,6 +32,8 @@ interface SidebarProps {
   onLogout: () => void;
   isOpen?: boolean;
   onToggle?: () => void;
+  /** Only admin can access payments; when false, Payments menu and Payments Report are hidden */
+  canAccessPayments?: boolean;
 }
 
 export default function Sidebar({
@@ -50,6 +52,7 @@ export default function Sidebar({
   onLogout,
   isOpen = true,
   onToggle,
+  canAccessPayments = true,
 }: SidebarProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
@@ -144,28 +147,30 @@ export default function Sidebar({
           )}
         </div>
 
-        {/* Payments */}
-        <div className="mb-1">
-          <button
-            onClick={() => toggle('payments')}
-            className="w-full flex items-center justify-between px-4 py-3 text-gray-200 hover:bg-white/5 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <CreditCard className="w-5 h-5 text-blue-400" />
-              <span className="font-medium">Payments</span>
-            </div>
-            {expanded === 'payments' ? (
-              <ChevronDown className="w-4 h-4" />
-            ) : (
-              <ChevronRight className="w-4 h-4" />
+        {/* Payments - only for admin */}
+        {canAccessPayments && (
+          <div className="mb-1">
+            <button
+              onClick={() => toggle('payments')}
+              className="w-full flex items-center justify-between px-4 py-3 text-gray-200 hover:bg-white/5 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <CreditCard className="w-5 h-5 text-blue-400" />
+                <span className="font-medium">Payments</span>
+              </div>
+              {expanded === 'payments' ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+            </button>
+            {expanded === 'payments' && (
+              <div className="pl-4 pb-2 space-y-1">
+                {menuItem(onPaymentsList, <CreditCard className="w-4 h-4 text-blue-300" />, 'Payments List')}
+              </div>
             )}
-          </button>
-          {expanded === 'payments' && (
-            <div className="pl-4 pb-2 space-y-1">
-              {menuItem(onPaymentsList, <CreditCard className="w-4 h-4 text-blue-300" />, 'Payments List')}
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Users */}
         <div className="mb-1">
@@ -209,7 +214,7 @@ export default function Sidebar({
           </button>
           {expanded === 'reports' && (
             <div className="pl-4 pb-2 space-y-1">
-              {menuItem(onPaymentsReport, <CreditCard className="w-4 h-4 text-blue-300" />, 'Payments Report')}
+              {canAccessPayments && menuItem(onPaymentsReport, <CreditCard className="w-4 h-4 text-blue-300" />, 'Payments Report')}
               {menuItem(onExpenseReport, <Receipt className="w-4 h-4 text-blue-300" />, 'Expense Report')}
               {menuItem(onIncomeStatement, <BarChart3 className="w-4 h-4 text-blue-300" />, 'Income Statement')}
             </div>

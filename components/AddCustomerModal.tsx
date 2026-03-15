@@ -509,7 +509,7 @@ export default function CustomerModal({
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-64 object-cover"
+                className="w-full min-h-[280px] h-80 sm:h-96 object-cover"
               />
               <canvas ref={canvasRef} className="hidden" />
               {/* Switch Camera button - only show on devices with multiple cameras (mobile) */}
@@ -580,7 +580,7 @@ export default function CustomerModal({
           {/* Image Upload Section */}
           <div className="text-center">
             <div className="relative inline-block">
-              <div className="w-32 h-32 rounded-2xl border-4 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center overflow-hidden">
+              <div className="w-48 h-48 sm:w-56 sm:h-56 rounded-2xl border-4 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center overflow-hidden">
                 {previewImage ? (
                   <img
                     src={previewImage}
@@ -589,7 +589,7 @@ export default function CustomerModal({
                   />
                 ) : (
                   <div className="text-gray-400">
-                    <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-16 h-16 sm:w-20 sm:h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
@@ -601,9 +601,9 @@ export default function CustomerModal({
                 type="button"
                 onClick={triggerFileInput}
                 disabled={isLoading}
-                className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full shadow-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
+                className="absolute bottom-0 right-0 bg-blue-500 text-white p-2.5 sm:p-3 rounded-full shadow-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
               </button>
@@ -613,9 +613,9 @@ export default function CustomerModal({
                 type="button"
                 onClick={() => startCamera()}
                 disabled={isLoading}
-                className="absolute bottom-0 left-0 bg-green-500 text-white p-2 rounded-full shadow-lg hover:bg-green-600 transition-colors disabled:opacity-50"
+                className="absolute bottom-0 left-0 bg-green-500 text-white p-2.5 sm:p-3 rounded-full shadow-lg hover:bg-green-600 transition-colors disabled:opacity-50"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
@@ -627,9 +627,9 @@ export default function CustomerModal({
                   type="button"
                   onClick={handleRemoveImage}
                   disabled={isLoading}
-                  className="absolute top-0 right-0 bg-red-500 text-white p-2 rounded-full shadow-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+                  className="absolute top-0 right-0 bg-red-500 text-white p-2.5 sm:p-3 rounded-full shadow-lg hover:bg-red-600 transition-colors disabled:opacity-50"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>

@@ -10,21 +10,9 @@ interface AddExpenseModalProps {
   onAdd: () => void;
 }
 
-const EXPENSE_TYPES = [
-  'Rent',
-  'Utilities',
-  'Supplies',
-  'Equipment',
-  'Salaries',
-  'Maintenance',
-  'Marketing',
-  'Insurance',
-  'Other',
-];
-
 export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseModalProps) {
   const [formData, setFormData] = useState({
-    type: 'Rent',
+    type: '',
     amount: '',
     description: '',
     date: new Date().toISOString().split('T')[0],
@@ -35,6 +23,17 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
     e.preventDefault();
     setIsLoading(true);
 
+    if (!formData.type.trim()) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Type required',
+        text: 'Please enter an expense type.',
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      setIsLoading(false);
+      return;
+    }
     const amount = parseFloat(formData.amount);
     if (isNaN(amount) || amount <= 0) {
       Swal.fire({
@@ -68,7 +67,7 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
       }
 
       setFormData({
-        type: 'Rent',
+        type: '',
         amount: '',
         description: '',
         date: new Date().toISOString().split('T')[0],
@@ -99,7 +98,7 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
@@ -125,20 +124,16 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-            <select
+            <input
+              type="text"
               name="type"
               required
               value={formData.type}
               onChange={handleChange}
               disabled={isLoading}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white transition-all duration-200 text-gray-900 disabled:opacity-50"
-            >
-              {EXPENSE_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
+              placeholder="e.g. Rent, Supplies, Utilities"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white transition-all duration-200 text-gray-900 disabled:opacity-50 placeholder-gray-400"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>

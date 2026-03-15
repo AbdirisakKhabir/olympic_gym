@@ -127,3 +127,8 @@ export const authOptions: NextAuthOptions = {
   },
   debug: process.env.NODE_ENV === 'development',
 };
+
+/** Only admin can access payment list, record payment, report, and renewal. */
+export function canAccessPayments(role: string | undefined): boolean {
+  return role === 'admin';
+}

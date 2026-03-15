@@ -337,6 +337,7 @@ export default function CustomersPage() {
 
   const router = useRouter();
   const { data: session } = useSession();
+  const canAccessPayments = session?.user?.role === 'admin';
 
   // Effects
   useEffect(() => {
@@ -352,14 +353,37 @@ export default function CustomersPage() {
     setCurrentPage(1);
   }, [selectedFilter, searchTerm, genderFilter, shiftFilter]);
 
+  // Non-admin must not stay on payments view
+  useEffect(() => {
+    if (activeView === 'payments' && !canAccessPayments) {
+      setActiveView('dashboard');
+    }
+  }, [activeView, canAccessPayments]);
+
   // Customer management functions
   const handleEditCustomer = (customer: Customer) => {
     setEditingCustomer(customer);
     setIsCustomerModalOpen(true);
   };
 
+  const handleDeleteCustomer = (customer: Customer) => {
+    setIsDetailModalOpen(false);
+    setSelectedCustomer(null);
+    setSelectedCustomers(prev => prev.filter(id => id !== customer.id));
+    setCustomers(prev => prev.filter(c => c.id !== customer.id));
+    const filters = getApiFilters();
+    fetchCustomers(currentPage, filters);
+    refreshStats();
+  };
 
-  
+  const handlePaymentRecorded = (updatedCustomer: Customer) => {
+    setSelectedCustomer(prev => prev && prev.id === updatedCustomer.id ? { ...prev, balance: updatedCustomer.balance } : prev);
+    setCustomers(prev => prev.map(c => c.id === updatedCustomer.id ? { ...c, balance: updatedCustomer.balance } : c));
+    const filters = getApiFilters();
+    fetchCustomers(currentPage, filters);
+    refreshStats();
+  };
+
   const handleUpdateCustomer = async (customerId: string, updatedData: Partial<Customer>) => {
     try {
       // Refresh data to get updated customer from server
@@ -882,6 +906,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
         onLogout={handleLogout}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen((prev) => !prev)}
+        canAccessPayments={canAccessPayments}
       />
 
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 lg:pl-64">
@@ -894,16 +919,6 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
           >
             <Menu className="w-6 h-6" />
           </button>
-
-          {/* Loading Overlay */}
-          {loading && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm p-4">
-              <div className="bg-white rounded-2xl p-6 sm:p-8 flex items-center space-x-4 max-w-[90vw]">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                <span className="text-gray-700 font-semibold">Loading customers...</span>
-              </div>
-            </div>
-          )}
 
           {/* Page Header */}
           <div className="mb-6 sm:mb-8 pt-14 sm:pt-12 lg:pt-0">
@@ -934,7 +949,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
               userRole={session?.user?.role || null}
             />
           )}
-          {activeView === 'payments' && <PaymentsTable />}
+          {activeView === 'payments' && canAccessPayments && <PaymentsTable />}
           {activeView === 'users' && <UsersTable onAddUser={() => setIsAddUserModalOpen(true)} />}
           {activeView === 'expenses' && <ExpensesTable onAddExpense={() => setIsAddExpenseModalOpen(true)} />}
           {activeView === 'settings' && <Settings />}
@@ -1093,7 +1108,8 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
             <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 mt-4 pt-4 border-t border-gray-100">
               {selectedCustomers.length > 0 && (
                 <>
-                  {/* Renew Button */}
+                  {/* Renew Button - admin only */}
+                  {canAccessPayments && (
                   <button
                     onClick={() => setIsRenewalModalOpen(true)}
                     className="bg-gradient-to-r from-green-500 to-green-600 
@@ -1105,6 +1121,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
                     <RefreshCw className="w-4 h-4" />
                     <span>Renew ({selectedCustomers.length})</span>
                   </button>
+                  )}
 
                   {/* WhatsApp Button */}
                   <button
@@ -1306,6 +1323,10 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
             onClose={() => setIsDetailModalOpen(false)}
             customer={selectedCustomer}
             onEdit={handleEditCustomer}
+            onDelete={handleDeleteCustomer}
+            onPaymentRecorded={handlePaymentRecorded}
+            currentUserId={session?.user?.id}
+            canAccessPayments={canAccessPayments}
           />
 
           <CustomerModal
