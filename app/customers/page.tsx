@@ -982,7 +982,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
       <div className="flex items-center justify-between">
         <div>
           <p className="text-green-100 text-xs sm:text-sm font-medium">Active Members</p>
-          <p className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">{stats.active}</p>
+          <p className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">{isAdmin ? stats.active : '—'}</p>
         </div>
         <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
           <CheckCircle className="w-7 h-7 text-white" />
@@ -999,7 +999,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
       <div className="flex items-center justify-between">
         <div>
           <p className="text-blue-100 text-xs sm:text-sm font-medium">No Expire Date</p>
-          <p className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">{stats.noExpireDate}</p>
+          <p className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">{isAdmin ? stats.noExpireDate : '—'}</p>
         </div>
         <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
           <Users className="w-7 h-7 text-white" />
@@ -1016,7 +1016,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
       <div className="flex items-center justify-between">
         <div>
           <p className="text-red-100 text-xs sm:text-sm font-medium">Expired</p>
-          <p className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">{stats.expired}</p>
+          <p className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">{isAdmin ? stats.expired : '—'}</p>
         </div>
         <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
           <Clock className="w-7 h-7 text-white" />
@@ -1033,7 +1033,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
       <div className="flex items-center justify-between">
         <div>
           <p className="text-orange-100 text-xs sm:text-sm font-medium">Expiring Soon</p>
-          <p className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">{stats.expiringThisWeek}</p>
+          <p className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">{isAdmin ? stats.expiringThisWeek : '—'}</p>
         </div>
         <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
           <AlertTriangle className="w-7 h-7 text-white" />
