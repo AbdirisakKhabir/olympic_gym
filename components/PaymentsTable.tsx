@@ -58,7 +58,7 @@ export default function PaymentsTable() {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden w-full min-w-0">
       <div className="p-4 sm:p-6 border-b border-gray-100">
         <h2 className="text-xl font-bold text-gray-800">Payments</h2>
         <p className="text-sm text-gray-500 mt-1">All payment transactions</p>
@@ -73,8 +73,8 @@ export default function PaymentsTable() {
           <p className="text-2xl font-bold text-blue-700">{formatCurrency(totalAmount)}</p>
         </div>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      <div className="overflow-x-auto -mx-px sm:mx-0">
+        <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
@@ -97,9 +97,9 @@ export default function PaymentsTable() {
               current.map((p) => (
                 <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-900 whitespace-nowrap">{formatDate(p.date)}</td>
-                  <td className="px-3 sm:px-6 py-3 sm:py-4">
-                    <p className="font-medium text-gray-900">{p.customer.name}</p>
-                    <p className="text-xs text-gray-500">{p.customer.phone || '—'}</p>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 max-w-[200px] sm:max-w-none">
+                    <p className="font-medium text-gray-900 break-words">{p.customer.name}</p>
+                    <p className="text-xs text-gray-500 break-all">{p.customer.phone || '—'}</p>
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm font-semibold text-blue-600">{formatCurrency(p.paidAmount)}</td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 hidden md:table-cell">{formatCurrency(p.discount)}</td>

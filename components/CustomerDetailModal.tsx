@@ -46,6 +46,10 @@ export default function CustomerDetailModal({
   const [imageZoomScale, setImageZoomScale] = useState(1);
 
   useEffect(() => {
+    if (!canAccessPayments) {
+      setCustomerPayments([]);
+      return;
+    }
     const fetchPayments = async () => {
       if (customer && isOpen) {
         setLoadingPayments(true);
@@ -64,7 +68,7 @@ export default function CustomerDetailModal({
     };
 
     fetchPayments();
-  }, [customer, isOpen]);
+  }, [customer, isOpen, canAccessPayments]);
 
   useEffect(() => {
     if (isOpen && customer) {
@@ -137,6 +141,7 @@ export default function CustomerDetailModal({
         }, ...prev]);
       }
       Swal.fire({ icon: 'success', title: 'Payment recorded', text: `New balance: $${calculatedNewBalance.toFixed(2)}`, timer: 2000, showConfirmButton: false });
+      onClose();
     } catch (e) {
       Swal.fire({ icon: 'error', title: 'Failed', text: e instanceof Error ? e.message : 'Could not record payment.', timer: 3000, showConfirmButton: false });
     } finally {
@@ -270,8 +275,8 @@ export default function CustomerDetailModal({
 
   return (
     <>
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden my-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50 backdrop-blur-sm overflow-y-auto overscroll-y-contain">
+      <div className="bg-white rounded-2xl shadow-2xl w-full min-w-0 max-w-[min(42rem,calc(100vw-1rem))] max-h-[min(95vh,100dvh-1rem)] sm:max-h-[90vh] overflow-hidden my-auto">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 sm:p-6 text-white">
           <div className="flex items-center justify-between gap-4">
@@ -464,12 +469,14 @@ export default function CustomerDetailModal({
           <div className="bg-blue-50 rounded-2xl p-6">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Membership Summary</h4>
             <div className="grid grid-cols-2 gap-4 text-sm">
+              {canAccessPayments && (
               <div>
                 <p className="text-gray-600">Balance Owed</p>
                 <p className={`text-lg font-semibold ${(customer.balance ?? 0) > 0 ? 'text-amber-600' : 'text-gray-900'}`}>
                   ${Number(customer.balance ?? 0).toFixed(2)}
                 </p>
               </div>
+              )}
               <div>
                 <p className="text-gray-600">Member ID</p>
                 <p className="font-semibold text-gray-900">{customer.id}</p>
@@ -486,10 +493,12 @@ export default function CustomerDetailModal({
                   {customer.isActive ? 'Active' : 'Inactive'}
                 </p>
               </div>
+              {canAccessPayments && (
               <div>
                 <p className="text-gray-600">Monthly Fee</p>
                 <p className="font-semibold text-gray-900">${customer.fee || '0'}</p>
               </div>
+              )}
             </div>
           </div>
 

@@ -8,9 +8,11 @@ interface CustomerCardProps {
   isSelected: boolean;
   onSelect: (e: React.MouseEvent) => void;
   onClick: (customer: Customer) => void;
+  /** Admin only: show balance owed on card */
+  showPaymentInfo?: boolean;
 }
 
-export default function CustomerCard({ customer, isSelected, onSelect, onClick }: CustomerCardProps) {
+export default function CustomerCard({ customer, isSelected, onSelect, onClick, showPaymentInfo = true }: CustomerCardProps) {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -206,7 +208,7 @@ export default function CustomerCard({ customer, isSelected, onSelect, onClick }
                 {getMembershipDuration()}
               </span>
             </div>
-            {(customer.balance != null && customer.balance > 0) && (
+            {showPaymentInfo && (customer.balance != null && customer.balance > 0) && (
               <div className="flex justify-between items-center">
                 <span className="text-xs font-medium text-gray-500">Balance:</span>
                 <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-1 rounded-full">

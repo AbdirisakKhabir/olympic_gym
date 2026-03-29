@@ -16,7 +16,7 @@ import { useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { CreditCard, BarChart3, LogOut, UserPlus, ChevronRight, ChevronLeft, Receipt, Menu } from 'lucide-react';
 import CustomerModal from '@/components/AddCustomerModal';
-import AddExpenseModal from '@/components/AddExpenseModal';
+import AddExpenseModal, { ExpenseFormValues } from '@/components/AddExpenseModal';
 import ExpenseReportModal from '@/components/ExpenseReportModal';
 import IncomeStatementModal from '@/components/IncomeStatementModal';
 import Sidebar from '@/components/Sidebar';
@@ -57,7 +57,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-dvh min-h-screen flex items-center justify-center px-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
@@ -325,6 +325,8 @@ export default function CustomersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isRenewalModalOpen, setIsRenewalModalOpen] = useState(false);
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<ExpenseFormValues | null>(null);
+  const [expenseListVersion, setExpenseListVersion] = useState(0);
   const [isExpenseReportModalOpen, setIsExpenseReportModalOpen] = useState(false);
   const [isIncomeStatementModalOpen, setIsIncomeStatementModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -523,6 +525,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
       const filters = getApiFilters();
       fetchCustomers(currentPage, filters);
       setSelectedCustomers([]);
+      setIsRenewalModalOpen(false);
 
       Swal.fire({
         icon: 'success',
@@ -900,7 +903,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
         onPaymentsReport={() => { setIsPaymentsReportModalOpen(true); setIsSidebarOpen(false); }}
         onExpenseReport={() => { setIsExpenseReportModalOpen(true); setIsSidebarOpen(false); }}
         onIncomeStatement={() => { setIsIncomeStatementModalOpen(true); setIsSidebarOpen(false); }}
-        onAddExpense={() => { setIsAddExpenseModalOpen(true); setIsSidebarOpen(false); }}
+        onAddExpense={() => { setEditingExpense(null); setIsAddExpenseModalOpen(true); setIsSidebarOpen(false); }}
         onExpensesList={() => { setActiveView('expenses'); setIsSidebarOpen(false); }}
         onSettings={() => { setActiveView('settings'); setIsSidebarOpen(false); }}
         onLogout={handleLogout}
@@ -909,19 +912,19 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
         canAccessPayments={canAccessPayments}
       />
 
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 lg:pl-64">
-        <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+      <div className="min-h-screen min-h-dvh w-full min-w-0 overflow-x-clip bg-gradient-to-br from-gray-50 to-gray-100 lg:pl-64">
+        <div className="w-full min-w-0 max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 pb-[max(1rem,env(safe-area-inset-bottom))]">
           {/* Mobile menu button */}
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="lg:hidden fixed top-4 left-4 z-20 p-2 rounded-lg bg-slate-800 text-white shadow-lg"
+            className="lg:hidden fixed top-[max(0.75rem,env(safe-area-inset-top))] left-[max(0.75rem,env(safe-area-inset-left))] z-20 p-2.5 min-h-[44px] min-w-[44px] rounded-lg bg-slate-800 text-white shadow-lg flex items-center justify-center touch-manipulation"
             aria-label="Open menu"
           >
             <Menu className="w-6 h-6" />
           </button>
 
-          {/* Page Header */}
-          <div className="mb-6 sm:mb-8 pt-14 sm:pt-12 lg:pt-0">
+          {/* Page Header — left padding on small screens so title clears the menu button */}
+          <div className="mb-6 sm:mb-8 pt-14 sm:pt-12 lg:pt-0 pl-11 sm:pl-0 lg:pl-0">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
               {activeView === 'dashboard' && 'Dashboard'}
               {activeView === 'members' && 'Members'}
@@ -951,7 +954,19 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
           )}
           {activeView === 'payments' && canAccessPayments && <PaymentsTable />}
           {activeView === 'users' && <UsersTable onAddUser={() => setIsAddUserModalOpen(true)} />}
-          {activeView === 'expenses' && <ExpensesTable onAddExpense={() => setIsAddExpenseModalOpen(true)} />}
+          {activeView === 'expenses' && (
+            <ExpensesTable
+              listVersion={expenseListVersion}
+              onAddExpense={() => {
+                setEditingExpense(null);
+                setIsAddExpenseModalOpen(true);
+              }}
+              onEditExpense={(e) => {
+                setEditingExpense(e);
+                setIsAddExpenseModalOpen(true);
+              }}
+            />
+          )}
           {activeView === 'settings' && <Settings />}
           {activeView === 'members' && (
             <>
@@ -1123,7 +1138,8 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
                   </button>
                   )}
 
-                  {/* WhatsApp Button */}
+                  {/* Payment reminder WhatsApp — admin only */}
+                  {canAccessPayments && (
                   <button
                     onClick={handleWhatsAppMessage}
                     className="bg-gradient-to-r from-emerald-500 to-green-600 
@@ -1135,6 +1151,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
                     <MessageCircle className="w-4 h-4" />
                     <span>Notify ({selectedCustomers.length})</span>
                   </button>
+                  )}
                 </>
               )}
             </div>
@@ -1192,6 +1209,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
                   isSelected={selectedCustomers.includes(customer.id)}
                   onSelect={() => toggleCustomerSelection(customer.id)}
                   onClick={handleCustomerClick}
+                  showPaymentInfo={canAccessPayments}
                 />
               ))
             )}
@@ -1349,10 +1367,12 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
             currentUser={session?.user}
           />
 
+          {canAccessPayments && (
           <PaymentsReportModal
             isOpen={isPaymentsReportModalOpen}
             onClose={() => setIsPaymentsReportModalOpen(false)}
           />
+          )}
 
           <AddUserModal
             isOpen={isAddUserModalOpen}
@@ -1362,8 +1382,12 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
 
           <AddExpenseModal
             isOpen={isAddExpenseModalOpen}
-            onClose={() => setIsAddExpenseModalOpen(false)}
-            onAdd={() => {}}
+            editingExpense={editingExpense}
+            onClose={() => {
+              setIsAddExpenseModalOpen(false);
+              setEditingExpense(null);
+            }}
+            onSuccess={() => setExpenseListVersion((v) => v + 1)}
           />
 
           <ExpenseReportModal
@@ -1371,13 +1395,15 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
             onClose={() => setIsExpenseReportModalOpen(false)}
           />
 
+          {canAccessPayments && (
           <IncomeStatementModal
             isOpen={isIncomeStatementModalOpen}
             onClose={() => setIsIncomeStatementModalOpen(false)}
           />
+          )}
 
           {/* Add Payment Modal */}
-          {isAddPaymentModalOpen && (
+          {canAccessPayments && isAddPaymentModalOpen && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
               <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100">
                 <div className="p-6 border-b border-gray-200">

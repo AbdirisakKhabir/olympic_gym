@@ -1,16 +1,36 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { DollarSign, X } from 'lucide-react';
+
+export interface ExpenseFormValues {
+  id: number;
+  type: string;
+  amount: number;
+  description: string | null;
+  date: string;
+}
 
 interface AddExpenseModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: () => void;
+  onSuccess: () => void;
+  /** When set, modal updates this expense instead of creating a new one */
+  editingExpense?: ExpenseFormValues | null;
 }
 
-export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseModalProps) {
+function toDateInputValue(isoDate: string) {
+  try {
+    const d = new Date(isoDate);
+    if (isNaN(d.getTime())) return new Date().toISOString().split('T')[0];
+    return d.toISOString().split('T')[0];
+  } catch {
+    return new Date().toISOString().split('T')[0];
+  }
+}
+
+export default function AddExpenseModal({ isOpen, onClose, onSuccess, editingExpense }: AddExpenseModalProps) {
   const [formData, setFormData] = useState({
     type: '',
     amount: '',
@@ -18,6 +38,25 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
     date: new Date().toISOString().split('T')[0],
   });
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (editingExpense) {
+      setFormData({
+        type: editingExpense.type,
+        amount: String(editingExpense.amount),
+        description: editingExpense.description || '',
+        date: toDateInputValue(editingExpense.date),
+      });
+    } else {
+      setFormData({
+        type: '',
+        amount: '',
+        description: '',
+        date: new Date().toISOString().split('T')[0],
+      });
+    }
+  }, [isOpen, editingExpense]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,8 +87,12 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
     }
 
     try {
-      const response = await fetch('/api/expenses', {
-        method: 'POST',
+      const isEdit = Boolean(editingExpense);
+      const url = isEdit ? `/api/expenses/${editingExpense!.id}` : '/api/expenses';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -63,7 +106,7 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create expense');
+        throw new Error(errorData.error || (isEdit ? 'Failed to update expense' : 'Failed to create expense'));
       }
 
       setFormData({
@@ -73,12 +116,12 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
         date: new Date().toISOString().split('T')[0],
       });
 
-      onAdd();
+      onSuccess();
 
       Swal.fire({
         icon: 'success',
-        title: 'Expense Added!',
-        text: 'Expense has been recorded successfully.',
+        title: isEdit ? 'Expense updated' : 'Expense added',
+        text: isEdit ? 'Changes have been saved.' : 'Expense has been recorded successfully.',
         timer: 2000,
         showConfirmButton: false,
       });
@@ -112,7 +155,9 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 my-4 mx-2 sm:mx-4">
         <div className="p-4 sm:p-6 border-b border-gray-200">
           <div className="flex justify-between items-center gap-2">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Add Expense</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+              {editingExpense ? 'Edit Expense' : 'Add Expense'}
+            </h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-2 hover:bg-gray-100 rounded-lg"
@@ -192,7 +237,7 @@ export default function AddExpenseModal({ isOpen, onClose, onAdd }: AddExpenseMo
               disabled={isLoading}
               className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg disabled:opacity-50"
             >
-              {isLoading ? 'Adding...' : 'Add Expense'}
+              {isLoading ? (editingExpense ? 'Saving...' : 'Adding...') : editingExpense ? 'Save changes' : 'Add Expense'}
             </button>
           </div>
         </form>

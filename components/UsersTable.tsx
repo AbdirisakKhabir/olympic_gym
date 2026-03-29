@@ -93,7 +93,7 @@ export default function UsersTable({ onAddUser }: { onAddUser: () => void }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden w-full min-w-0">
       <div className="p-4 sm:p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
         <div>
           <h2 className="text-lg sm:text-xl font-bold text-gray-800">Users</h2>
@@ -106,8 +106,8 @@ export default function UsersTable({ onAddUser }: { onAddUser: () => void }) {
           Add User
         </button>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      <div className="overflow-x-auto -mx-px sm:mx-0">
+        <table className="w-full min-w-[480px]">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Username</th>
@@ -127,7 +127,7 @@ export default function UsersTable({ onAddUser }: { onAddUser: () => void }) {
             ) : (
               currentUsers.map((u) => (
                 <tr key={u.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-3 sm:px-6 py-3 sm:py-4 font-medium text-gray-900">{u.username}</td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 font-medium text-gray-900 max-w-[140px] sm:max-w-none break-words">{u.username}</td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadge(u.role)}`}>
                       {u.role.charAt(0).toUpperCase() + u.role.slice(1)}

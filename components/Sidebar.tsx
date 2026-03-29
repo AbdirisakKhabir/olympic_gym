@@ -32,7 +32,7 @@ interface SidebarProps {
   onLogout: () => void;
   isOpen?: boolean;
   onToggle?: () => void;
-  /** Only admin can access payments; when false, Payments menu and Payments Report are hidden */
+  /** Only admin: Payments, Payments Report, Income Statement (no payment/income UI for others) */
   canAccessPayments?: boolean;
 }
 
@@ -87,7 +87,7 @@ export default function Sidebar({
         />
       )}
       <aside
-        className={`fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-blue-900 to-blue-950 text-white shadow-xl flex flex-col z-40 transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed left-0 top-0 h-screen w-64 min-h-dvh max-h-[100dvh] bg-gradient-to-b from-blue-900 to-blue-950 text-white shadow-xl flex flex-col z-40 transition-transform duration-300 lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -113,7 +113,7 @@ export default function Sidebar({
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto py-4">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         {/* Dashboard */}
         <button
           onClick={onDashboard}
@@ -216,7 +216,7 @@ export default function Sidebar({
             <div className="pl-4 pb-2 space-y-1">
               {canAccessPayments && menuItem(onPaymentsReport, <CreditCard className="w-4 h-4 text-blue-300" />, 'Payments Report')}
               {menuItem(onExpenseReport, <Receipt className="w-4 h-4 text-blue-300" />, 'Expense Report')}
-              {menuItem(onIncomeStatement, <BarChart3 className="w-4 h-4 text-blue-300" />, 'Income Statement')}
+              {canAccessPayments && menuItem(onIncomeStatement, <BarChart3 className="w-4 h-4 text-blue-300" />, 'Income Statement')}
             </div>
           )}
         </div>

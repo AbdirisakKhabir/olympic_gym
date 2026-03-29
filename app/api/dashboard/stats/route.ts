@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/lib/auth";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 export async function GET() {
+  const session = await getServerSession(authOptions);
+  const isAdmin = session?.user?.role === "admin";
+
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -43,27 +48,33 @@ export async function GET() {
         },
       }),
       prisma.customer.count({ where: { expireDate: null } }),
-      prisma.payment.aggregate({
-        where: {
-          date: { gte: firstOfMonth, lte: lastOfMonth },
-        },
-        _sum: { paidAmount: true },
-      }),
-      prisma.expense.aggregate({
-        where: {
-          date: { gte: firstOfMonth, lte: lastOfMonth },
-        },
-        _sum: { amount: true },
-      }),
-      prisma.customer.aggregate({
-        _sum: { balance: true },
-      }),
+      isAdmin
+        ? prisma.payment.aggregate({
+            where: {
+              date: { gte: firstOfMonth, lte: lastOfMonth },
+            },
+            _sum: { paidAmount: true },
+          })
+        : Promise.resolve({ _sum: { paidAmount: null as number | null } }),
+      isAdmin
+        ? prisma.expense.aggregate({
+            where: {
+              date: { gte: firstOfMonth, lte: lastOfMonth },
+            },
+            _sum: { amount: true },
+          })
+        : Promise.resolve({ _sum: { amount: null as number | null } }),
+      isAdmin
+        ? prisma.customer.aggregate({
+            _sum: { balance: true },
+          })
+        : Promise.resolve({ _sum: { balance: null as number | null } }),
     ]);
 
-    const revenue = monthlyPayments._sum.paidAmount ?? 0;
-    const expenses = monthlyExpenses._sum.amount ?? 0;
-    const netIncome = revenue - expenses;
-    const totalBalancesAmount = totalBalances._sum.balance ?? 0;
+    const revenue = isAdmin ? (monthlyPayments._sum.paidAmount ?? 0) : 0;
+    const expenses = isAdmin ? (monthlyExpenses._sum.amount ?? 0) : 0;
+    const netIncome = isAdmin ? revenue - expenses : 0;
+    const totalBalancesAmount = isAdmin ? (totalBalances._sum.balance ?? 0) : 0;
 
     return NextResponse.json({
       members: {

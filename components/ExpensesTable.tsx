@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { Receipt, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Receipt, Loader2, ChevronLeft, ChevronRight, Pencil, Trash2 } from 'lucide-react';
 
 interface Expense {
   id: number;
@@ -12,7 +12,15 @@ interface Expense {
   date: string;
 }
 
-export default function ExpensesTable({ onAddExpense }: { onAddExpense: () => void }) {
+export default function ExpensesTable({
+  onAddExpense,
+  onEditExpense,
+  listVersion = 0,
+}: {
+  onAddExpense: () => void;
+  onEditExpense: (expense: Expense) => void;
+  listVersion?: number;
+}) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,7 +44,36 @@ export default function ExpensesTable({ onAddExpense }: { onAddExpense: () => vo
 
   useEffect(() => {
     fetchExpenses();
-  }, []);
+  }, [listVersion]);
+
+  const handleDelete = async (e: Expense) => {
+    const result = await Swal.fire({
+      title: 'Delete expense?',
+      html: `Remove <strong>${e.type}</strong> (${formatCurrency(e.amount)})? This cannot be undone.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
+    });
+    if (!result.isConfirmed) return;
+    try {
+      const res = await fetch(`/api/expenses/${e.id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to delete');
+      }
+      await fetchExpenses();
+      Swal.fire({ icon: 'success', title: 'Deleted', timer: 1500, showConfirmButton: false });
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Delete failed',
+        text: err instanceof Error ? err.message : 'Could not delete expense.',
+      });
+    }
+  };
 
   const formatCurrency = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
   const formatDate = (s: string) => new Date(s).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -55,7 +92,7 @@ export default function ExpensesTable({ onAddExpense }: { onAddExpense: () => vo
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden w-full min-w-0">
       <div className="p-4 sm:p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
         <div>
           <h2 className="text-lg sm:text-xl font-bold text-gray-800">Expenses</h2>
@@ -78,20 +115,21 @@ export default function ExpensesTable({ onAddExpense }: { onAddExpense: () => vo
           <p className="text-2xl font-bold text-gray-800">{formatCurrency(totalAmount)}</p>
         </div>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      <div className="overflow-x-auto -mx-px sm:mx-0">
+        <table className="w-full min-w-[520px]">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
               <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
               <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Amount</th>
               <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider hidden md:table-cell">Description</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {current.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
                   <Receipt className="w-12 h-12 mx-auto mb-2 text-gray-400" />
                   No expenses recorded yet.
                 </td>
@@ -105,6 +143,24 @@ export default function ExpensesTable({ onAddExpense }: { onAddExpense: () => vo
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm font-semibold text-blue-600">{formatCurrency(e.amount)}</td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-gray-600 max-w-xs truncate hidden md:table-cell">{e.description || '—'}</td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-right whitespace-nowrap">
+                    <button
+                      type="button"
+                      onClick={() => onEditExpense(e)}
+                      className="inline-flex items-center justify-center p-2 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors mr-1"
+                      aria-label="Edit expense"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(e)}
+                      className="inline-flex items-center justify-center p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                      aria-label="Delete expense"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
                 </tr>
               ))
             )}

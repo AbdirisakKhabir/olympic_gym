@@ -108,7 +108,7 @@ export default function Dashboard({
           <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 mt-4 sm:mt-6">
             <button
               onClick={onMembersList}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-sm font-semibold transition-all"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 sm:py-2.5 min-h-[44px] rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-sm font-semibold transition-all touch-manipulation"
             >
               <Users className="w-5 h-5" />
               View Members
@@ -116,7 +116,7 @@ export default function Dashboard({
             </button>
             <button
               onClick={onAddMember}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-blue-600 hover:bg-blue-50 font-semibold transition-all shadow-lg"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 sm:py-2.5 min-h-[44px] rounded-xl bg-white text-blue-600 hover:bg-blue-50 font-semibold transition-all shadow-lg touch-manipulation"
             >
               <UserPlus className="w-5 h-5" />
               Add New Member
@@ -131,14 +131,14 @@ export default function Dashboard({
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div
             onClick={onMembersList}
-            className="group bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl hover:border-green-200 transition-all cursor-pointer"
+            className="group bg-white rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 hover:shadow-xl hover:border-green-200 transition-all cursor-pointer"
           >
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-2 min-w-0">
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-500">Active Members</p>
                 <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{showMemberCounts ? members.active : '—'}</p>
               </div>
-              <div className="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-14 h-14 shrink-0 rounded-2xl bg-green-100 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <CheckCircle className="w-7 h-7 text-green-600" />
               </div>
             </div>
@@ -146,14 +146,14 @@ export default function Dashboard({
 
           <div
             onClick={onMembersList}
-            className="group bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl hover:border-orange-200 transition-all cursor-pointer"
+            className="group bg-white rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 hover:shadow-xl hover:border-orange-200 transition-all cursor-pointer"
           >
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-2 min-w-0">
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-500">Expiring Soon</p>
                 <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{showMemberCounts ? members.expiringSoon : '—'}</p>
               </div>
-              <div className="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-14 h-14 shrink-0 rounded-2xl bg-orange-100 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <AlertTriangle className="w-7 h-7 text-orange-600" />
               </div>
             </div>
@@ -161,14 +161,14 @@ export default function Dashboard({
 
           <div
             onClick={onMembersList}
-            className="group bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl hover:border-red-200 transition-all cursor-pointer"
+            className="group bg-white rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 hover:shadow-xl hover:border-red-200 transition-all cursor-pointer"
           >
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-2 min-w-0">
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-500">Expired</p>
                 <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{showMemberCounts ? members.expired : '—'}</p>
               </div>
-              <div className="w-14 h-14 rounded-2xl bg-red-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-14 h-14 shrink-0 rounded-2xl bg-red-100 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Clock className="w-7 h-7 text-red-600" />
               </div>
             </div>
@@ -176,14 +176,14 @@ export default function Dashboard({
 
           <div
             onClick={onMembersList}
-            className="group bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl hover:border-blue-200 transition-all cursor-pointer"
+            className="group bg-white rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 hover:shadow-xl hover:border-blue-200 transition-all cursor-pointer"
           >
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-center justify-between gap-2 min-w-0">
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-500">Total Members</p>
                 <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{showMemberCounts ? members.total : '—'}</p>
               </div>
-              <div className="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-14 h-14 shrink-0 rounded-2xl bg-blue-100 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Users className="w-7 h-7 text-blue-600" />
               </div>
             </div>
@@ -198,12 +198,12 @@ export default function Dashboard({
             {period.month} {period.year} Financials
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 min-w-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-12 h-12 shrink-0 rounded-xl bg-green-100 flex items-center justify-center">
                   <TrendingUp className="w-6 h-6 text-green-600" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-medium text-gray-500">Revenue</p>
                   <p className="text-2xl font-bold text-green-600">{formatCurrency(financials.revenue)}</p>
                   <p className="text-xs text-gray-400 mt-0.5">This month</p>
@@ -211,12 +211,12 @@ export default function Dashboard({
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 min-w-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-12 h-12 shrink-0 rounded-xl bg-amber-100 flex items-center justify-center">
                   <DollarSign className="w-6 h-6 text-amber-600" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-medium text-gray-500">Total Balances</p>
                   <p className="text-2xl font-bold text-amber-600">{formatCurrency(financials.totalBalances ?? 0)}</p>
                   <p className="text-xs text-gray-400 mt-0.5">Owed by members</p>
@@ -224,12 +224,12 @@ export default function Dashboard({
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 min-w-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-12 h-12 shrink-0 rounded-xl bg-red-100 flex items-center justify-center">
                   <TrendingDown className="w-6 h-6 text-red-600" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-medium text-gray-500">Expenses</p>
                   <p className="text-2xl font-bold text-red-600">{formatCurrency(financials.expenses)}</p>
                   <p className="text-xs text-gray-400 mt-0.5">This month</p>
@@ -239,21 +239,21 @@ export default function Dashboard({
 
             <div
               onClick={onIncomeStatement}
-              className="group bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl hover:border-blue-200 transition-all cursor-pointer"
+              className="group bg-white rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 hover:shadow-xl hover:border-blue-200 transition-all cursor-pointer min-w-0"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${financials.netIncome >= 0 ? 'bg-blue-100' : 'bg-amber-100'}`}>
+              <div className="flex items-center justify-between gap-2 min-w-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-12 h-12 shrink-0 rounded-xl flex items-center justify-center ${financials.netIncome >= 0 ? 'bg-blue-100' : 'bg-amber-100'}`}>
                     <DollarSign className={`w-6 h-6 ${financials.netIncome >= 0 ? 'text-blue-600' : 'text-amber-600'}`} />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm font-medium text-gray-500">Net Income</p>
                     <p className={`text-2xl font-bold ${financials.netIncome >= 0 ? 'text-blue-600' : 'text-amber-600'}`}>
                       {formatCurrency(financials.netIncome)}
                     </p>
                   </div>
                 </div>
-                <BarChart3 className="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                <BarChart3 className="w-5 h-5 shrink-0 text-gray-400 group-hover:text-blue-500 transition-colors" />
               </div>
             </div>
           </div>
@@ -261,19 +261,19 @@ export default function Dashboard({
       )}
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap gap-3 sm:gap-4">
           <button
             onClick={onAddMember}
-            className="flex items-center gap-3 px-6 py-4 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold transition-colors"
+            className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-4 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold transition-colors touch-manipulation min-h-[44px]"
           >
             <UserPlus className="w-5 h-5" />
             Add New Member
           </button>
           <button
             onClick={onMembersList}
-            className="flex items-center gap-3 px-6 py-4 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold transition-colors"
+            className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-4 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold transition-colors touch-manipulation min-h-[44px]"
           >
             <Users className="w-5 h-5" />
             Members List
@@ -281,7 +281,7 @@ export default function Dashboard({
           {showFinancials && (
             <button
               onClick={onIncomeStatement}
-              className="flex items-center gap-3 px-6 py-4 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold transition-colors"
+              className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-4 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold transition-colors touch-manipulation min-h-[44px]"
             >
               <BarChart3 className="w-5 h-5 text-blue-600" />
               Income Statement
