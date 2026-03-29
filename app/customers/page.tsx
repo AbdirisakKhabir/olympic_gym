@@ -339,7 +339,8 @@ export default function CustomersPage() {
 
   const router = useRouter();
   const { data: session } = useSession();
-  const canAccessPayments = session?.user?.role === 'admin';
+  const isAdmin = session?.user?.role === 'admin';
+  const canAccessPayments = isAdmin;
 
   // Effects
   useEffect(() => {
@@ -355,12 +356,12 @@ export default function CustomersPage() {
     setCurrentPage(1);
   }, [selectedFilter, searchTerm, genderFilter, shiftFilter]);
 
-  // Non-admin must not stay on payments view
+  // Non-admin: only dashboard + members; redirect away from admin-only views
   useEffect(() => {
-    if (activeView === 'payments' && !canAccessPayments) {
+    if (!isAdmin && ['payments', 'users', 'expenses', 'settings'].includes(activeView)) {
       setActiveView('dashboard');
     }
-  }, [activeView, canAccessPayments]);
+  }, [activeView, isAdmin]);
 
   // Customer management functions
   const handleEditCustomer = (customer: Customer) => {
@@ -910,6 +911,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen((prev) => !prev)}
         canAccessPayments={canAccessPayments}
+        isAdmin={isAdmin}
       />
 
       <div className="min-h-screen min-h-dvh w-full min-w-0 overflow-x-clip bg-gradient-to-br from-gray-50 to-gray-100 lg:pl-64">
@@ -934,7 +936,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
               {activeView === 'settings' && 'Settings'}
             </h1>
             <p className="text-gray-600 mt-1 text-sm sm:text-base">
-              {activeView === 'dashboard' && 'Overview of your gym performance'}
+              {activeView === 'dashboard' && (isAdmin ? 'Overview of your gym performance' : 'Register members and review membership status')}
               {activeView === 'members' && 'Manage your gym members and membership'}
               {activeView === 'payments' && 'All payment transactions'}
               {activeView === 'users' && 'Manage system users and roles'}

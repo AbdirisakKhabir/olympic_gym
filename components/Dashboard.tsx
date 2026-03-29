@@ -91,7 +91,7 @@ export default function Dashboard({
 
   const { members, financials, period } = stats;
   const showFinancials = userRole === 'admin';
-  const showMemberCounts = userRole === 'admin';
+  const showMemberOverview = userRole === 'admin';
 
   return (
     <div className="space-y-8">
@@ -103,7 +103,9 @@ export default function Dashboard({
             Welcome back{userName ? `, ${userName}` : ''}!
           </h1>
           <p className="text-blue-100 text-base sm:text-lg">
-            Here's what's happening with your gym today.
+            {showMemberOverview
+              ? "Here's what's happening with your gym today."
+              : 'Register members and review membership status from the Members section.'}
           </p>
           <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 mt-4 sm:mt-6">
             <button
@@ -125,7 +127,8 @@ export default function Dashboard({
         </div>
       </div>
 
-      {/* Member Stats Grid */}
+      {/* Member stats — numbers visible to administrators only */}
+      {showMemberOverview ? (
       <div>
         <h2 className="text-lg font-semibold text-gray-800 mb-4">Member Overview</h2>
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -136,7 +139,7 @@ export default function Dashboard({
             <div className="flex items-center justify-between gap-2 min-w-0">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-500">Active Members</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{showMemberCounts ? members.active : '—'}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{members.active}</p>
               </div>
               <div className="w-14 h-14 shrink-0 rounded-2xl bg-green-100 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <CheckCircle className="w-7 h-7 text-green-600" />
@@ -151,7 +154,7 @@ export default function Dashboard({
             <div className="flex items-center justify-between gap-2 min-w-0">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-500">Expiring Soon</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{showMemberCounts ? members.expiringSoon : '—'}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{members.expiringSoon}</p>
               </div>
               <div className="w-14 h-14 shrink-0 rounded-2xl bg-orange-100 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <AlertTriangle className="w-7 h-7 text-orange-600" />
@@ -166,7 +169,7 @@ export default function Dashboard({
             <div className="flex items-center justify-between gap-2 min-w-0">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-500">Expired</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{showMemberCounts ? members.expired : '—'}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{members.expired}</p>
               </div>
               <div className="w-14 h-14 shrink-0 rounded-2xl bg-red-100 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Clock className="w-7 h-7 text-red-600" />
@@ -181,7 +184,7 @@ export default function Dashboard({
             <div className="flex items-center justify-between gap-2 min-w-0">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-500">Total Members</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{showMemberCounts ? members.total : '—'}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{members.total}</p>
               </div>
               <div className="w-14 h-14 shrink-0 rounded-2xl bg-blue-100 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Users className="w-7 h-7 text-blue-600" />
@@ -190,6 +193,14 @@ export default function Dashboard({
           </div>
         </div>
       </div>
+      ) : (
+      <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-lg border border-gray-100">
+        <h2 className="text-lg font-semibold text-gray-800 mb-2">Members</h2>
+        <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
+          Use <strong>Members</strong> in the sidebar to add new registrations and open any member to verify phone, expiry, and account status. Summary counts on this dashboard are visible to administrators only.
+        </p>
+      </div>
+      )}
 
       {/* Financial Overview - hidden for staff users */}
       {showFinancials && (

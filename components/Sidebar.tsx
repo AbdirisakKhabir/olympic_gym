@@ -34,6 +34,8 @@ interface SidebarProps {
   onToggle?: () => void;
   /** Only admin: Payments, Payments Report, Income Statement (no payment/income UI for others) */
   canAccessPayments?: boolean;
+  /** Admin-only sections: Users, Reports, Expenses, Settings. Non-admins only see Dashboard + Members. */
+  isAdmin?: boolean;
 }
 
 export default function Sidebar({
@@ -53,6 +55,7 @@ export default function Sidebar({
   isOpen = true,
   onToggle,
   canAccessPayments = true,
+  isAdmin = true,
 }: SidebarProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
@@ -172,6 +175,8 @@ export default function Sidebar({
           </div>
         )}
 
+        {isAdmin && (
+        <>
         {/* Users */}
         <div className="mb-1">
           <button
@@ -253,6 +258,8 @@ export default function Sidebar({
           <Settings className="w-5 h-5 text-blue-400" />
           <span className="font-medium">Settings</span>
         </button>
+        </>
+        )}
       </div>
 
       {/* Logout */}
