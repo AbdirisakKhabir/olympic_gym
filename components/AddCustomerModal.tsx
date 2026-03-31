@@ -9,6 +9,7 @@ interface CustomerModalProps {
   onSave: (customer: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>) => void;
   onUpdate?: (customerId: string, customer: Partial<Customer>) => void;
   customer?: Customer | null;
+  currentUserId?: string | null;
 }
 
 export default function CustomerModal({ 
@@ -16,7 +17,8 @@ export default function CustomerModal({
   onClose, 
   onSave, 
   onUpdate, 
-  customer 
+  customer,
+  currentUserId,
 }: CustomerModalProps) {
   const isEditMode = Boolean(customer);
   
@@ -35,6 +37,8 @@ export default function CustomerModal({
     weight: '',
     bmi: '',
     standardWeight: '',
+    initialPaidAmount: '',
+    initialDiscount: '0',
   });
   const [previewImage, setPreviewImage] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -64,6 +68,8 @@ export default function CustomerModal({
           weight: customer.weight != null ? String(customer.weight) : '',
           bmi: customer.bmi != null ? String(customer.bmi) : '',
           standardWeight: customer.standardWeight != null ? String(customer.standardWeight) : '',
+          initialPaidAmount: '',
+          initialDiscount: '0',
         });
         setPreviewImage(customer.image || '');
       } else {
@@ -81,6 +87,8 @@ export default function CustomerModal({
           weight: '',
           bmi: '',
           standardWeight: '',
+          initialPaidAmount: '',
+          initialDiscount: '0',
         });
         setPreviewImage('');
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -304,6 +312,35 @@ export default function CustomerModal({
         return;
       }
 
+      const feeAmount = parseFloat(formData.fee) || 0;
+      const firstPaidAmount = parseFloat(formData.initialPaidAmount) || 0;
+      const firstDiscountAmount = parseFloat(formData.initialDiscount) || 0;
+      const hasFirstPayment = !isEditMode && (firstPaidAmount > 0 || firstDiscountAmount > 0);
+
+      if (firstPaidAmount < 0 || firstDiscountAmount < 0) {
+        Swal.fire({
+          icon: "error",
+          title: "Invalid First Payment",
+          text: "First payment and discount cannot be negative.",
+          timer: 2200,
+          showConfirmButton: false,
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (hasFirstPayment && !currentUserId) {
+        Swal.fire({
+          icon: "error",
+          title: "User Required",
+          text: "You must be logged in to record first payment.",
+          timer: 2200,
+          showConfirmButton: false,
+        });
+        setIsLoading(false);
+        return;
+      }
+
       const submitFormData = new FormData();
 
       // ADD THIS BLOCK:
@@ -331,6 +368,13 @@ export default function CustomerModal({
       submitFormData.append("weight", formData.weight);
       submitFormData.append("bmi", formData.bmi);
       submitFormData.append("standardWeight", formData.standardWeight);
+      if (!isEditMode) {
+        submitFormData.append("initialPaidAmount", String(firstPaidAmount));
+        submitFormData.append("initialDiscount", String(firstDiscountAmount));
+        if (hasFirstPayment && currentUserId) {
+          submitFormData.append("recordedByUserId", String(currentUserId));
+        }
+      }
 
       if (fileInputRef.current?.files?.[0]) {
         submitFormData.append("image", fileInputRef.current.files[0]);
@@ -443,18 +487,19 @@ export default function CustomerModal({
 
         
       } else if (onSave) {
-      
+
+        const openingBalance = Math.max(0, feeAmount - firstPaidAmount - firstDiscountAmount);
         onSave({
-          name: formData.name,
-          phone: formData.phone.trim() || null,
-          registerDate: new Date(formData.registerDate + "T00:00:00.000Z"),
-          expireDate: formData.expireDate ? new Date(formData.expireDate + "T00:00:00.000Z") : null,
-          fee: parseFloat(formData.fee),
-          gender: formData.gender,
-          shift: formData.shift || null,
-          balance: 0,
-          image: formData.image,
-          isActive: true,
+          name: resultCustomer.name ?? formData.name,
+          phone: resultCustomer.phone ?? (formData.phone.trim() || null),
+          registerDate: resultCustomer.registerDate ? new Date(resultCustomer.registerDate) : new Date(formData.registerDate + "T00:00:00.000Z"),
+          expireDate: resultCustomer.expireDate ? new Date(resultCustomer.expireDate) : (formData.expireDate ? new Date(formData.expireDate + "T00:00:00.000Z") : null),
+          fee: Number(resultCustomer.fee ?? feeAmount),
+          gender: resultCustomer.gender ?? formData.gender,
+          shift: resultCustomer.shift ?? (formData.shift || null),
+          balance: Number(resultCustomer.balance ?? openingBalance),
+          image: resultCustomer.image ?? formData.image,
+          isActive: Boolean(resultCustomer.isActive ?? true),
         });
       }
 
@@ -482,6 +527,11 @@ export default function CustomerModal({
       [name]: value
     }));
   };
+
+  const feeAmount = parseFloat(formData.fee) || 0;
+  const firstPaidAmount = parseFloat(formData.initialPaidAmount) || 0;
+  const firstDiscountAmount = parseFloat(formData.initialDiscount) || 0;
+  const firstPaymentBalance = Math.max(0, feeAmount - firstPaidAmount - firstDiscountAmount);
 
   if (!isOpen) return null;
 
@@ -789,6 +839,59 @@ export default function CustomerModal({
                 placeholder="0.00"
               />
             </div>
+
+            {!isEditMode && (
+              <div className="md:col-span-2 bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                <h4 className="text-sm sm:text-base font-semibold text-emerald-800 mb-3">
+                  First Payment (Optional)
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Paid Amount ($)
+                    </label>
+                    <input
+                      type="number"
+                      name="initialPaidAmount"
+                      min="0"
+                      step="0.01"
+                      value={formData.initialPaidAmount}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white text-gray-900 disabled:opacity-50"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Discount ($)
+                    </label>
+                    <input
+                      type="number"
+                      name="initialDiscount"
+                      min="0"
+                      step="0.01"
+                      value={formData.initialDiscount}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white text-gray-900 disabled:opacity-50"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Balance After First Payment
+                    </label>
+                    <p className="px-4 py-3 rounded-xl bg-white border border-gray-300 text-gray-900 font-semibold">
+                      ${firstPaymentBalance.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs text-emerald-700 mt-3">
+                  This is saved only during new registration and can be used by non-admin users.
+                </p>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3">

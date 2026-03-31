@@ -64,6 +64,9 @@ export async function POST(req) {
     const bmi = formData.get("bmi");
     const standardWeight = formData.get("standardWeight");
     const shift = formData.get("shift");
+    const initialPaidAmount = formData.get("initialPaidAmount");
+    const initialDiscount = formData.get("initialDiscount");
+    const recordedByUserId = formData.get("recordedByUserId");
 
     // ✅ Validate required fields (phone is now optional)
     if (!name || !registerDate || !fee || !gender) {
@@ -81,6 +84,33 @@ export async function POST(req) {
     const registerDateObj = parseDate(registerDate);
     const expireDateObj = expireDate ? parseDate(expireDate) : null;
     const feeNumber = parseFloat(fee);
+    const initialPaid = initialPaidAmount ? parseFloat(initialPaidAmount) : 0;
+    const initialDisc = initialDiscount ? parseFloat(initialDiscount) : 0;
+    const hasFirstPayment = initialPaid > 0 || initialDisc > 0;
+
+    if (isNaN(feeNumber) || feeNumber < 0) {
+      return new Response(
+        JSON.stringify({ error: "Fee must be a valid non-negative number" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    if (isNaN(initialPaid) || initialPaid < 0 || isNaN(initialDisc) || initialDisc < 0) {
+      return new Response(
+        JSON.stringify({ error: "Initial paid amount and discount must be valid non-negative numbers" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const creatorUserId = recordedByUserId ? parseInt(recordedByUserId, 10) : NaN;
+    if (hasFirstPayment && isNaN(creatorUserId)) {
+      return new Response(
+        JSON.stringify({ error: "User ID is required to record first payment" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const openingBalance = Math.max(0, feeNumber - initialPaid - initialDisc);
 
     // ✅ Prepare data for Prisma - set phone to null if empty
     const customerData = {
@@ -90,7 +120,7 @@ export async function POST(req) {
       expireDate: expireDateObj,
       fee: feeNumber,
       gender,
-      balance: 0,
+      balance: openingBalance,
       image: imageUrl,
       isActive: true,
       height: height ? parseFloat(height) : null,
@@ -100,9 +130,26 @@ export async function POST(req) {
       shift: shift && shift.trim() !== "" ? shift.trim() : null,
     };
 
-    // ✅ Now we pass proper JS Dates to Prisma
-    const newCustomer = await prisma.customer.create({
-      data: customerData,
+    // Create customer and optional first payment in one transaction
+    const newCustomer = await prisma.$transaction(async (tx) => {
+      const createdCustomer = await tx.customer.create({
+        data: customerData,
+      });
+
+      if (hasFirstPayment) {
+        await tx.payment.create({
+          data: {
+            customerId: createdCustomer.id,
+            userId: creatorUserId,
+            paidAmount: initialPaid,
+            discount: initialDisc,
+            balance: openingBalance,
+            date: registerDateObj,
+          },
+        });
+      }
+
+      return createdCustomer;
     });
 
     return new Response(JSON.stringify(newCustomer), {
@@ -115,6 +162,13 @@ export async function POST(req) {
     if (error.code === "P2002") {
       return new Response(
         JSON.stringify({ error: "Phone number already exists" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    if (error.code === "P2003") {
+      return new Response(
+        JSON.stringify({ error: "Invalid user for first payment" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }

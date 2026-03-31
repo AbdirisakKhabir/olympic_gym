@@ -341,7 +341,8 @@ export default function CustomersPage() {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'admin';
   const canAccessPayments = isAdmin;
-
+  // TEMP: comment-out member SMS/WhatsApp reminder feature until re-enabled.
+  const ENABLE_MEMBER_SMS = false;
   // Effects
   useEffect(() => {
     setIsClient(true);
@@ -1126,7 +1127,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
               {selectedCustomers.length > 0 && (
                 <>
                   {/* Renew Button - admin only */}
-                  {canAccessPayments && (
+                  {canAccessPayments && ENABLE_MEMBER_SMS && (
                   <button
                     onClick={() => setIsRenewalModalOpen(true)}
                     className="bg-gradient-to-r from-green-500 to-green-600 
@@ -1141,7 +1142,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
                   )}
 
                   {/* Payment reminder WhatsApp — admin only */}
-                  {canAccessPayments && (
+                  {canAccessPayments && ENABLE_MEMBER_SMS && (
                   <button
                     onClick={handleWhatsAppMessage}
                     className="bg-gradient-to-r from-emerald-500 to-green-600 
@@ -1358,6 +1359,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
             onSave={handleAddCustomer}
             onUpdate={handleUpdateCustomer}
             customer={editingCustomer}
+            currentUserId={session?.user?.id || null}
           />
 
           <RenewalModal
