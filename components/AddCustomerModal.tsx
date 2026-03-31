@@ -21,6 +21,7 @@ export default function CustomerModal({
   currentUserId,
 }: CustomerModalProps) {
   const isEditMode = Boolean(customer);
+  const ENABLE_WELCOME_MESSAGE = false; // TEMP: disable welcome message sending
   
   const SHIFTS = ['Subaxa', 'Duhurka', 'Galabka', 'Habeenka'] as const;
 
@@ -431,8 +432,8 @@ export default function CustomerModal({
 
   
 
-      // WhatsApp notification only for new customers
-      if (!isEditMode && formData.phone.trim()) {
+      // WhatsApp notification only for new customers (temporarily disabled)
+      if (ENABLE_WELCOME_MESSAGE && !isEditMode && formData.phone.trim()) {
         try {
           console.log('Sending WhatsApp welcome message to customer');
           
