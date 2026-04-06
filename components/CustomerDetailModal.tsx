@@ -276,9 +276,9 @@ export default function CustomerDetailModal({
   return (
     <>
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50 backdrop-blur-sm overflow-y-auto overscroll-y-contain">
-      <div className="bg-white rounded-2xl shadow-2xl w-full min-w-0 max-w-[min(42rem,calc(100vw-1rem))] max-h-[min(95vh,100dvh-1rem)] sm:max-h-[90vh] overflow-hidden my-auto">
+      <div className="bg-white rounded-2xl shadow-2xl w-full min-w-0 max-w-[min(42rem,calc(100vw-1rem))] max-h-[min(95vh,100dvh-1rem)] sm:max-h-[90vh] my-auto flex flex-col min-h-0 overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 sm:p-6 text-white">
+        <div className="shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 p-4 sm:p-6 text-white">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
               <h2 className="text-xl sm:text-3xl font-bold truncate">Member Details</h2>
@@ -295,7 +295,7 @@ export default function CustomerDetailModal({
           </div>
         </div>
 
-        <div className="p-4 sm:p-6 max-h-[60vh] overflow-y-auto">
+        <div className="p-4 sm:p-6 flex-1 min-h-0 overflow-y-auto overscroll-contain">
           {/* Customer Profile */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-6">
             <button
@@ -573,47 +573,51 @@ export default function CustomerDetailModal({
           )}
         </div>
 
-        {/* Footer Actions */}
-        <div className="border-t border-gray-200 p-4 sm:p-6 bg-gray-50">
-          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
+        {/* Footer Actions — shrink-0 keeps actions visible; body scrolls above on short viewports */}
+        <div className="shrink-0 border-t border-gray-200 p-4 sm:p-6 pb-[max(1rem,env(safe-area-inset-bottom))] bg-gray-50">
+          <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:flex-wrap">
             <button
+              type="button"
               onClick={onClose}
               disabled={isDeleting}
-              className="flex-1 px-4 sm:px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 transition-all duration-200 font-semibold disabled:opacity-50"
+              className="w-full sm:flex-1 min-h-[48px] px-4 sm:px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 active:bg-gray-200 transition-all duration-200 font-semibold disabled:opacity-50 touch-manipulation"
             >
               Close
             </button>
             <button
+              type="button"
               onClick={handleWhatsAppClick}
               disabled={isWhatsAppDisabled || isDeleting}
-              className={`flex-1 px-4 sm:px-6 py-3 rounded-xl transition-all duration-200 font-semibold flex items-center justify-center space-x-2 ${
+              className={`w-full sm:flex-1 min-h-[48px] px-4 sm:px-6 py-3 rounded-xl transition-all duration-200 font-semibold flex items-center justify-center gap-2 touch-manipulation ${
                 isWhatsAppDisabled || isDeleting
                   ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                  : 'bg-green-500 text-white hover:bg-green-600'
+                  : 'bg-green-500 text-white hover:bg-green-600 active:bg-green-700'
               }`}
             >
-              <span>💬</span>
+              <span aria-hidden>💬</span>
               <span>{isWhatsAppDisabled ? 'No Phone Number' : 'Send WhatsApp'}</span>
             </button>
             <button
+              type="button"
               onClick={() => {
                 onEdit(customer);
                 onClose();
               }}
               disabled={isDeleting}
-              className="flex-1 px-4 sm:px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all duration-200 font-semibold flex items-center justify-center space-x-2 disabled:opacity-50"
+              className="w-full sm:flex-1 min-h-[48px] px-4 sm:px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 active:bg-blue-700 transition-all duration-200 font-semibold flex items-center justify-center gap-2 disabled:opacity-50 touch-manipulation"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
               <span>Edit Customer</span>
             </button>
             <button
+              type="button"
               onClick={handleDelete}
               disabled={isDeleting}
-              className="flex-1 px-4 sm:px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all duration-200 font-semibold flex items-center justify-center space-x-2 disabled:opacity-50"
+              className="w-full sm:flex-1 min-h-[48px] px-4 sm:px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 active:bg-red-700 transition-all duration-200 font-semibold flex items-center justify-center gap-2 disabled:opacity-50 touch-manipulation"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
               <span>{isDeleting ? 'Deleting...' : 'Delete Member'}</span>
