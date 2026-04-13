@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import { PrismaClient } from "@prisma/client";
+import {
+  customerGenderMatchesAccess,
+  getMemberGenderAccessForSessionUser,
+} from "@/app/lib/memberGenderAccess";
 
 const prisma = new PrismaClient();
 
@@ -38,6 +42,14 @@ export async function POST(request) {
     });
     if (!customer) {
       return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+    }
+
+    const scope = await getMemberGenderAccessForSessionUser();
+    if (!scope) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (!customerGenderMatchesAccess(scope.access, customer.gender)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const due = amountDue !== undefined && amountDue !== null && amountDue !== ""
@@ -98,7 +110,17 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   try {
+    const scope = await getMemberGenderAccessForSessionUser();
+    if (!scope) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const genderFilter =
+      scope.access === "both"
+        ? {}
+        : { customer: { gender: scope.access === "male" ? "male" : "female" } };
+
     const payments = await prisma.payment.findMany({
+      where: genderFilter,
       include: {
         customer: {
           select: {

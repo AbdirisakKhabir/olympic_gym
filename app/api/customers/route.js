@@ -1,11 +1,19 @@
 // app/api/customers/route.js
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import {
+  applyMemberGenderAccessToWhere,
+  getMemberGenderAccessForSessionUser,
+} from "@/app/lib/memberGenderAccess";
 
 const prisma = new PrismaClient();
 
 export async function GET(request) {
   try {
+    const scope = await getMemberGenderAccessForSessionUser();
+    if (!scope) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
     const status = searchParams.get("status");
@@ -132,6 +140,8 @@ export async function GET(request) {
         where.expireDate = expireDate;
       }
     }
+
+    where = applyMemberGenderAccessToWhere(where, scope.access);
 
     // Get customers with pagination
     const [customers, totalCount] = await Promise.all([

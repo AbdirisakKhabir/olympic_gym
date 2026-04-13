@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { MEMBER_GENDER_ACCESS_VALUES, normalizeMemberGenderAccess } from "@/app/lib/memberGenderAccess";
 
 const prisma = new PrismaClient();
 
@@ -29,6 +30,7 @@ export async function GET(request, { params }) {
       userId: user.id,
       username: user.username,
       role: user.role,
+      memberGenderAccess: normalizeMemberGenderAccess(user.memberGenderAccess),
       permissions,
     });
   } catch (error) {
@@ -46,7 +48,7 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     const userId = parseInt(id);
     const body = await request.json();
-    const { role } = body;
+    const { role, memberGenderAccess: rawGenderAccess } = body;
 
     if (!role?.trim()) {
       return NextResponse.json(
@@ -65,9 +67,26 @@ export async function PUT(request, { params }) {
       );
     }
 
+    let memberGenderAccess = undefined;
+    if (rawGenderAccess !== undefined && rawGenderAccess !== null) {
+      const g = String(rawGenderAccess).toLowerCase().trim();
+      if (!MEMBER_GENDER_ACCESS_VALUES.includes(g)) {
+        return NextResponse.json(
+          { error: "memberGenderAccess must be both, male, or female" },
+          { status: 400 }
+        );
+      }
+      memberGenderAccess = g;
+    }
+
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { role: role.trim() },
+      data: {
+        role: role.trim(),
+        ...(memberGenderAccess !== undefined
+          ? { memberGenderAccess }
+          : {}),
+      },
     });
 
     const updatedRole = await prisma.role.findFirst({
@@ -81,6 +100,7 @@ export async function PUT(request, { params }) {
       userId: user.id,
       username: user.username,
       role: user.role,
+      memberGenderAccess: normalizeMemberGenderAccess(user.memberGenderAccess),
       permissions: updatedRole?.permissions?.map((rp) => rp.permission) || [],
     });
   } catch (error) {

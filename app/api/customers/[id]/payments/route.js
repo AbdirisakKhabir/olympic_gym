@@ -3,6 +3,10 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import { PrismaClient } from "@prisma/client";
+import {
+  customerGenderMatchesAccess,
+  getMemberGenderAccessForSessionUser,
+} from "@/app/lib/memberGenderAccess";
 
 const prisma = new PrismaClient();
 
@@ -29,6 +33,21 @@ export async function GET(request, { params }) {
         { error: "Invalid customer ID" },
         { status: 400 }
       );
+    }
+
+    const scope = await getMemberGenderAccessForSessionUser();
+    if (!scope) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const member = await prisma.customer.findUnique({
+      where: { id: customerId },
+      select: { gender: true },
+    });
+    if (!member) {
+      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+    }
+    if (!customerGenderMatchesAccess(scope.access, member.gender)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const payments = await prisma.payment.findMany({

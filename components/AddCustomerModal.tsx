@@ -3,6 +3,8 @@ import { useState, useRef, useEffect } from 'react';
 import { Customer } from '@/types/customer';
 import Swal from 'sweetalert2';
 
+export type MemberGenderAccess = 'both' | 'male' | 'female';
+
 interface CustomerModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -10,6 +12,8 @@ interface CustomerModalProps {
   onUpdate?: (customerId: string, customer: Partial<Customer>) => void;
   customer?: Customer | null;
   currentUserId?: string | null;
+  /** From Settings: which member genders this user may add or edit */
+  memberGenderAccess?: MemberGenderAccess;
 }
 
 export default function CustomerModal({ 
@@ -19,6 +23,7 @@ export default function CustomerModal({
   onUpdate, 
   customer,
   currentUserId,
+  memberGenderAccess = 'both',
 }: CustomerModalProps) {
   const isEditMode = Boolean(customer);
   const ENABLE_WELCOME_MESSAGE = false; // TEMP: disable welcome message sending
@@ -96,6 +101,20 @@ export default function CustomerModal({
       }
     }
   }, [isOpen, customer]);
+
+  // If user may only add one gender, keep form gender valid when opening add mode
+  useEffect(() => {
+    if (!isOpen || customer) return;
+    setFormData((prev) => {
+      if (memberGenderAccess === 'male' && prev.gender !== 'male') {
+        return { ...prev, gender: 'male' };
+      }
+      if (memberGenderAccess === 'female' && prev.gender !== 'female') {
+        return { ...prev, gender: 'female' };
+      }
+      return prev;
+    });
+  }, [isOpen, customer, memberGenderAccess]);
 
   // Auto-calculate BMI when height or weight changes
   // BMI formula: BMI = weight (kg) / height (m)² = weight / (height/100)²
@@ -771,9 +790,18 @@ export default function CustomerModal({
                 disabled={isLoading}
                 className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-lg text-gray-900 bg-white disabled:opacity-50"
               >
-                <option value="male">Male</option>
-                <option value="female">Female</option>
+                <option value="male" disabled={memberGenderAccess === 'female'}>
+                  Male
+                </option>
+                <option value="female" disabled={memberGenderAccess === 'male'}>
+                  Female
+                </option>
               </select>
+              {memberGenderAccess !== 'both' && (
+                <p className="text-xs text-amber-700 mt-1">
+                  Your account can only manage {memberGenderAccess === 'male' ? 'male' : 'female'} members.
+                </p>
+              )}
             </div>
 
             <div>

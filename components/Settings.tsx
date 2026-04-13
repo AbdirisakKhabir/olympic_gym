@@ -22,6 +22,7 @@ interface User {
   id: number;
   username: string;
   role: string;
+  memberGenderAccess?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -43,7 +44,7 @@ export default function Settings() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [roleForm, setRoleForm] = useState({ name: '', description: '', permissionIds: [] as number[] });
   const [permissionForm, setPermissionForm] = useState({ code: '', name: '', description: '' });
-  const [userRoleForm, setUserRoleForm] = useState({ role: '' });
+  const [userRoleForm, setUserRoleForm] = useState({ role: '', memberGenderAccess: 'both' as string });
 
   const fetchRoles = async () => {
     try {
@@ -105,7 +106,10 @@ export default function Settings() {
 
   const openUserRoleModal = (user: User) => {
     setEditingUser(user);
-    setUserRoleForm({ role: user.role });
+    setUserRoleForm({
+      role: user.role,
+      memberGenderAccess: user.memberGenderAccess || 'both',
+    });
     setShowUserRoleModal(true);
   };
 
@@ -195,7 +199,10 @@ export default function Settings() {
       const res = await fetch(`/api/users/${editingUser.id}/permissions`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: userRoleForm.role }),
+        body: JSON.stringify({
+          role: userRoleForm.role,
+          memberGenderAccess: userRoleForm.memberGenderAccess,
+        }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -203,7 +210,13 @@ export default function Settings() {
       }
       await fetchUsers();
       setShowUserRoleModal(false);
-      Swal.fire({ icon: 'success', title: 'Updated', text: `Role updated for ${editingUser.username}.`, timer: 2000, showConfirmButton: false });
+      Swal.fire({
+        icon: 'success',
+        title: 'Updated',
+        text: `Permissions updated for ${editingUser.username}. They may need to sign in again for all screens to reflect member access.`,
+        timer: 4500,
+        showConfirmButton: true,
+      });
     } catch (e) {
       Swal.fire({ icon: 'error', title: 'Error', text: e instanceof Error ? e.message : 'Failed to update.', timer: 3000 });
     } finally {
@@ -338,7 +351,9 @@ export default function Settings() {
             <div>
               <div className="mb-4">
                 <h3 className="text-lg font-semibold text-gray-800">User Permissions</h3>
-                <p className="text-sm text-gray-500">Change a user&apos;s role to update their permissions.</p>
+                <p className="text-sm text-gray-500">
+                  Set role and which member genders (male / female / both) the user can view and manage.
+                </p>
               </div>
               <div className="space-y-3">
                 {users.length === 0 ? (
@@ -348,8 +363,11 @@ export default function Settings() {
                     <div key={u.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
                       <div>
                         <p className="font-semibold text-gray-700">{u.username}</p>
-                        <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mt-1">
+                        <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mt-1 mr-1">
                           {u.role}
+                        </span>
+                        <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 mt-1">
+                          Members: {u.memberGenderAccess === 'male' ? 'Male only' : u.memberGenderAccess === 'female' ? 'Female only' : 'Male & Female'}
                         </span>
                       </div>
                       <button onClick={() => openUserRoleModal(u)} className="flex items-center gap-2 px-3 py-1.5 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600">
@@ -484,17 +502,34 @@ export default function Settings() {
             <div className="p-4 border-b border-gray-200">
               <h3 className="text-xl font-bold text-gray-900">Edit Role for {editingUser.username}</h3>
             </div>
-            <div className="p-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
-              <select
-                value={userRoleForm.role}
-                onChange={(e) => setUserRoleForm((p) => ({ ...p, role: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-              >
-                {roles.map((r) => (
-                  <option key={r.id} value={r.name}>{r.name}</option>
-                ))}
-              </select>
+            <div className="p-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                <select
+                  value={userRoleForm.role}
+                  onChange={(e) => setUserRoleForm((p) => ({ ...p, role: e.target.value }))}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                >
+                  {roles.map((r) => (
+                    <option key={r.id} value={r.name}>{r.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Member access</label>
+                <p className="text-xs text-gray-500 mb-2">Which genders this user can list, add, edit, and delete.</p>
+                <select
+                  value={userRoleForm.memberGenderAccess}
+                  onChange={(e) =>
+                    setUserRoleForm((p) => ({ ...p, memberGenderAccess: e.target.value }))
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="both">Male and Female</option>
+                  <option value="male">Male only</option>
+                  <option value="female">Female only</option>
+                </select>
+              </div>
             </div>
             <div className="p-4 border-t border-gray-200 flex gap-2 justify-end">
               <button onClick={() => setShowUserRoleModal(false)} className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50">

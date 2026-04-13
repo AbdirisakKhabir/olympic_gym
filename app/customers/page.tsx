@@ -331,11 +331,7 @@ export default function CustomersPage() {
   const [isIncomeStatementModalOpen, setIsIncomeStatementModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeView, setActiveView] = useState<'dashboard' | 'members' | 'payments' | 'users' | 'expenses' | 'settings'>('dashboard');
-  // Add this state to track which stat is active
- 
-  // Add this state to track which stat is activ
-
-
+  const [memberGenderAccess, setMemberGenderAccess] = useState<'both' | 'male' | 'female'>('both');
 
   const router = useRouter();
   const { data: session } = useSession();
@@ -347,6 +343,37 @@ export default function CustomersPage() {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/users/me');
+        if (!res.ok) return;
+        const u = await res.json();
+        if (!cancelled && u?.memberGenderAccess) {
+          const g = String(u.memberGenderAccess).toLowerCase();
+          if (g === 'male' || g === 'female' || g === 'both') {
+            setMemberGenderAccess(g);
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (memberGenderAccess === 'male' && genderFilter === 'female') {
+      handleGenderFilter('all');
+    }
+    if (memberGenderAccess === 'female' && genderFilter === 'male') {
+      handleGenderFilter('all');
+    }
+  }, [memberGenderAccess, genderFilter, handleGenderFilter]);
 
   useEffect(() => {
     const filters = getApiFilters();
@@ -1091,8 +1118,14 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
                 ].map((btn) => (
                   <button
                     key={btn.key}
+                    type="button"
+                    disabled={
+                      btn.key !== 'all' &&
+                      ((btn.key === 'male' && memberGenderAccess === 'female') ||
+                        (btn.key === 'female' && memberGenderAccess === 'male'))
+                    }
                     onClick={() => handleGenderFilter(btn.key)}
-                    className={`px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-200 ${
+                    className={`px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed ${
                       genderFilter === btn.key
                         ? getActiveButtonClasses(btn.color)
                         : getInactiveButtonClasses(btn.color)
@@ -1360,6 +1393,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
             onUpdate={handleUpdateCustomer}
             customer={editingCustomer}
             currentUserId={session?.user?.id || null}
+            memberGenderAccess={memberGenderAccess}
           />
 
           <RenewalModal

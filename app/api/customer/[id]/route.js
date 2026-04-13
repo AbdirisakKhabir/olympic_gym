@@ -2,6 +2,10 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { v2 as cloudinary } from "cloudinary";
+import {
+  customerGenderMatchesAccess,
+  getMemberGenderAccessForSessionUser,
+} from "@/app/lib/memberGenderAccess";
 
 // Cloudinary setup
 cloudinary.config({
@@ -50,11 +54,20 @@ export async function GET(request, { params }) {
     const { id } = await params; // Next.js 15 Fix: Unwrap params
     const customerId = parseInt(id);
 
+    const scope = await getMemberGenderAccessForSessionUser();
+    if (!scope) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const customer = await prisma.customer.findUnique({
       where: { id: customerId },
     });
     if (!customer)
       return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    if (!customerGenderMatchesAccess(scope.access, customer.gender)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     return NextResponse.json(customer);
   } catch (error) {
@@ -100,6 +113,21 @@ export async function PUT(request, { params }) {
       return NextResponse.json(
         { error: "Customer not found" },
         { status: 404 }
+      );
+    }
+
+    const scope = await getMemberGenderAccessForSessionUser();
+    if (!scope) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (!customerGenderMatchesAccess(scope.access, existingCustomer.gender)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    const nextGender = gender?.toString();
+    if (nextGender && !customerGenderMatchesAccess(scope.access, nextGender)) {
+      return NextResponse.json(
+        { error: "You cannot assign this gender with your current access" },
+        { status: 403 }
       );
     }
 
@@ -151,6 +179,20 @@ export async function DELETE(request, { params }) {
   try {
     const { id } = await params; // Next.js 15 Fix: Unwrap params
     const customerId = parseInt(id);
+
+    const scope = await getMemberGenderAccessForSessionUser();
+    if (!scope) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const existing = await prisma.customer.findUnique({
+      where: { id: customerId },
+    });
+    if (!existing) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    if (!customerGenderMatchesAccess(scope.access, existing.gender)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     await prisma.customer.delete({ where: { id: customerId } });
     return NextResponse.json({ message: "Deleted" });

@@ -1,5 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 import { v2 as cloudinary } from "cloudinary";
+import {
+  customerGenderMatchesAccess,
+  getMemberGenderAccessForSessionUser,
+} from "@/app/lib/memberGenderAccess";
 
 // Cloudinary setup
 cloudinary.config({
@@ -50,6 +54,14 @@ function parseDate(dateString) {
 
 export async function POST(req) {
   try {
+    const scope = await getMemberGenderAccessForSessionUser();
+    if (!scope) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const formData = await req.formData();
 
     const name = formData.get("name");
@@ -73,6 +85,15 @@ export async function POST(req) {
       return new Response(
         JSON.stringify({ error: "All required fields must be filled" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!customerGenderMatchesAccess(scope.access, gender.toString())) {
+      return new Response(
+        JSON.stringify({
+          error: "You do not have permission to add members of this gender",
+        }),
+        { status: 403, headers: { "Content-Type": "application/json" } }
       );
     }
 

@@ -9,6 +9,8 @@ declare module "next-auth" {
       image?: string | null;
       username: string;
       role: string;
+      /** both | male | female — re-login may be needed after admin changes this in Settings */
+      memberGenderAccess: string;
     };
   }
 
@@ -19,6 +21,7 @@ declare module "next-auth" {
     image?: string | null;
     username: string;
     role: string;
+    memberGenderAccess?: string;
   }
 }
 
@@ -27,5 +30,6 @@ declare module "next-auth/jwt" {
     id: string;
     username: string;
     role: string;
+    memberGenderAccess?: string;
   }
 }

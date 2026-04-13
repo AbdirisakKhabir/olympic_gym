@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import { PrismaClient } from "@prisma/client";
+import {
+  applyMemberGenderAccessToWhere,
+  getMemberGenderAccessForSessionUser,
+} from "@/app/lib/memberGenderAccess";
 
 const prisma = new PrismaClient();
 
@@ -10,6 +14,10 @@ export async function GET() {
   const isAdmin = session?.user?.role === "admin";
 
   try {
+    const scope = await getMemberGenderAccessForSessionUser();
+    if (!scope) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const nextWeek = new Date(today);
@@ -30,24 +38,40 @@ export async function GET() {
       monthlyExpenses,
       totalBalances,
     ] = await Promise.all([
-      prisma.customer.count(),
       prisma.customer.count({
-        where: {
-          isActive: true,
-          expireDate: { gte: today },
-        },
+        where: applyMemberGenderAccessToWhere({}, scope.access),
       }),
       prisma.customer.count({
-        where: {
-          OR: [{ expireDate: { lt: today } }, { isActive: false }],
-        },
+        where: applyMemberGenderAccessToWhere(
+          {
+            isActive: true,
+            expireDate: { gte: today },
+          },
+          scope.access
+        ),
       }),
       prisma.customer.count({
-        where: {
-          expireDate: { gte: today, lte: nextWeek },
-        },
+        where: applyMemberGenderAccessToWhere(
+          {
+            OR: [{ expireDate: { lt: today } }, { isActive: false }],
+          },
+          scope.access
+        ),
       }),
-      prisma.customer.count({ where: { expireDate: null } }),
+      prisma.customer.count({
+        where: applyMemberGenderAccessToWhere(
+          {
+            expireDate: { gte: today, lte: nextWeek },
+          },
+          scope.access
+        ),
+      }),
+      prisma.customer.count({
+        where: applyMemberGenderAccessToWhere(
+          { expireDate: null },
+          scope.access
+        ),
+      }),
       isAdmin
         ? prisma.payment.aggregate({
             where: {
@@ -66,6 +90,7 @@ export async function GET() {
         : Promise.resolve({ _sum: { amount: null as number | null } }),
       isAdmin
         ? prisma.customer.aggregate({
+            where: applyMemberGenderAccessToWhere({}, scope.access),
             _sum: { balance: true },
           })
         : Promise.resolve({ _sum: { balance: null as number | null } }),

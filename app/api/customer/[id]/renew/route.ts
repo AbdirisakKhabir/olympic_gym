@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import { PrismaClient } from "@prisma/client";
+import {
+  customerGenderMatchesAccess,
+  getMemberGenderAccessForSessionUser,
+} from "@/app/lib/memberGenderAccess";
 
 const prisma = new PrismaClient();
 
@@ -49,6 +53,14 @@ export async function POST(
         { error: "Customer not found" },
         { status: 404 }
       );
+    }
+
+    const scope = await getMemberGenderAccessForSessionUser();
+    if (!scope) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (!customerGenderMatchesAccess(scope.access, existingCustomer.gender)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Parse expire date
