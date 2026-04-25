@@ -2,6 +2,7 @@
 
 import {
   CreditCard,
+  Wallet,
   Users,
   UserPlus,
   BarChart3,
@@ -20,6 +21,8 @@ interface SidebarProps {
   onDashboard: () => void;
   onMembersList: () => void;
   onAddMember: () => void;
+  /** Admin only: members with balance owed */
+  onMembersWithBalance?: () => void;
   onPaymentsList: () => void;
   onUsersList: () => void;
   onAddUser: () => void;
@@ -42,6 +45,7 @@ export default function Sidebar({
   onDashboard,
   onMembersList,
   onAddMember,
+  onMembersWithBalance,
   onPaymentsList,
   onUsersList,
   onAddUser,
@@ -146,6 +150,13 @@ export default function Sidebar({
             <div className="pl-4 pb-2 space-y-1">
               {menuItem(onMembersList, <Users className="w-4 h-4 text-blue-300" />, 'Members List')}
               {menuItem(onAddMember, <UserPlus className="w-4 h-4 text-blue-300" />, 'Add New Member')}
+              {canAccessPayments &&
+                onMembersWithBalance &&
+                menuItem(
+                  onMembersWithBalance,
+                  <Wallet className="w-4 h-4 text-amber-300" />,
+                  'Outstanding balances'
+                )}
             </div>
           )}
         </div>

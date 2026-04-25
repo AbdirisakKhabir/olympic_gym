@@ -14,7 +14,7 @@ import { Search, Plus, RefreshCw, MessageCircle } from "lucide-react";
 import RenewalModal from '@/components/RenewalModal';
 import { useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
-import { CreditCard, BarChart3, LogOut, UserPlus, ChevronRight, ChevronLeft, Receipt, Menu } from 'lucide-react';
+import { CreditCard, BarChart3, LogOut, UserPlus, ChevronRight, ChevronLeft, Receipt, Menu, Wallet } from 'lucide-react';
 import CustomerModal from '@/components/AddCustomerModal';
 import AddExpenseModal, { ExpenseFormValues } from '@/components/AddExpenseModal';
 import ExpenseReportModal from '@/components/ExpenseReportModal';
@@ -330,8 +330,22 @@ export default function CustomersPage() {
   const [isExpenseReportModalOpen, setIsExpenseReportModalOpen] = useState(false);
   const [isIncomeStatementModalOpen, setIsIncomeStatementModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeView, setActiveView] = useState<'dashboard' | 'members' | 'payments' | 'users' | 'expenses' | 'settings'>('dashboard');
+  const [activeView, setActiveView] = useState<
+    'dashboard' | 'members' | 'membersBalance' | 'payments' | 'users' | 'expenses' | 'settings'
+  >('dashboard');
   const [memberGenderAccess, setMemberGenderAccess] = useState<'both' | 'male' | 'female'>('both');
+  const [balanceCustomers, setBalanceCustomers] = useState<Customer[]>([]);
+  const [balanceLoading, setBalanceLoading] = useState(false);
+  const [balancePage, setBalancePage] = useState(1);
+  const [balanceSearch, setBalanceSearch] = useState('');
+  const [balanceListVersion, setBalanceListVersion] = useState(0);
+  const [balancePagination, setBalancePagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+    hasNext: false,
+    hasPrev: false,
+  });
 
   const router = useRouter();
   const { data: session } = useSession();
@@ -376,9 +390,10 @@ export default function CustomersPage() {
   }, [memberGenderAccess, genderFilter, handleGenderFilter]);
 
   useEffect(() => {
+    if (activeView !== 'members') return;
     const filters = getApiFilters();
     fetchCustomers(currentPage, filters);
-  }, [fetchCustomers, currentPage, getApiFilters]);
+  }, [fetchCustomers, currentPage, getApiFilters, activeView]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -386,10 +401,71 @@ export default function CustomersPage() {
 
   // Non-admin: only dashboard + members; redirect away from admin-only views
   useEffect(() => {
-    if (!isAdmin && ['payments', 'users', 'expenses', 'settings'].includes(activeView)) {
+    if (
+      !isAdmin &&
+      ['payments', 'users', 'expenses', 'settings', 'membersBalance'].includes(activeView)
+    ) {
       setActiveView('dashboard');
     }
   }, [activeView, isAdmin]);
+
+  useEffect(() => {
+    if (activeView !== 'membersBalance' || !canAccessPayments) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        setBalanceLoading(true);
+        const params = new URLSearchParams({
+          type: 'hasBalance',
+          page: String(balancePage),
+          limit: '200',
+        });
+        if (balanceSearch.trim()) params.set('search', balanceSearch.trim());
+        const res = await fetch(`/api/customers?${params}`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.error || 'Failed to load members with balance');
+        }
+        if (!cancelled) {
+          setBalanceCustomers(data.customers || []);
+          setBalancePagination(
+            data.pagination || {
+              currentPage: 1,
+              totalPages: 1,
+              totalCount: 0,
+              hasNext: false,
+              hasPrev: false,
+            }
+          );
+        }
+      } catch (e) {
+        if (!cancelled) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: e instanceof Error ? e.message : 'Could not load outstanding balances.',
+            confirmButtonColor: '#2563eb',
+          });
+        }
+      } finally {
+        if (!cancelled) setBalanceLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeView, balancePage, balanceSearch, balanceListVersion, canAccessPayments]);
+
+  const totalBalanceOwed = useMemo(
+    () => balanceCustomers.reduce((sum, c) => sum + (Number(c.balance) || 0), 0),
+    [balanceCustomers]
+  );
+
+  const membersListForModals = activeView === 'membersBalance' ? balanceCustomers : customers;
+
+  const paginateBalance = useCallback((pageNumber: number) => {
+    setBalancePage(pageNumber);
+  }, []);
 
   // Customer management functions
   const handleEditCustomer = (customer: Customer) => {
@@ -401,15 +477,20 @@ export default function CustomersPage() {
     setIsDetailModalOpen(false);
     setSelectedCustomer(null);
     setSelectedCustomers(prev => prev.filter(id => id !== customer.id));
-    setCustomers(prev => prev.filter(c => c.id !== customer.id));
-    const filters = getApiFilters();
-    fetchCustomers(currentPage, filters);
+    if (activeView === 'membersBalance') {
+      setBalanceListVersion((v) => v + 1);
+    } else {
+      setCustomers(prev => prev.filter(c => c.id !== customer.id));
+      const filters = getApiFilters();
+      fetchCustomers(currentPage, filters);
+    }
     refreshStats();
   };
 
   const handlePaymentRecorded = (updatedCustomer: Customer) => {
     setSelectedCustomer(prev => prev && prev.id === updatedCustomer.id ? { ...prev, balance: updatedCustomer.balance } : prev);
     setCustomers(prev => prev.map(c => c.id === updatedCustomer.id ? { ...c, balance: updatedCustomer.balance } : c));
+    setBalanceListVersion((v) => v + 1);
     const filters = getApiFilters();
     fetchCustomers(currentPage, filters);
     refreshStats();
@@ -926,6 +1007,12 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
         onDashboard={() => { setActiveView('dashboard'); setIsSidebarOpen(false); }}
         onMembersList={() => { setActiveView('members'); setIsSidebarOpen(false); }}
         onAddMember={() => { setIsCustomerModalOpen(true); setIsSidebarOpen(false); }}
+        onMembersWithBalance={() => {
+          setBalancePage(1);
+          setBalanceSearch('');
+          setActiveView('membersBalance');
+          setIsSidebarOpen(false);
+        }}
         onPaymentsList={() => { setActiveView('payments'); setIsSidebarOpen(false); }}
         onUsersList={() => { setActiveView('users'); setIsSidebarOpen(false); }}
         onAddUser={() => { setIsAddUserModalOpen(true); setIsSidebarOpen(false); }}
@@ -958,6 +1045,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
             <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
               {activeView === 'dashboard' && 'Dashboard'}
               {activeView === 'members' && 'Members'}
+              {activeView === 'membersBalance' && 'Outstanding balances'}
               {activeView === 'payments' && 'Payments'}
               {activeView === 'users' && 'Users'}
               {activeView === 'expenses' && 'Expenses'}
@@ -966,6 +1054,8 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
             <p className="text-gray-600 mt-1 text-sm sm:text-base">
               {activeView === 'dashboard' && (isAdmin ? 'Overview of your gym performance' : 'Register members and review membership status')}
               {activeView === 'members' && 'Manage your gym members and membership'}
+              {activeView === 'membersBalance' &&
+                'Members with a balance greater than zero, highest balance first'}
               {activeView === 'payments' && 'All payment transactions'}
               {activeView === 'users' && 'Manage system users and roles'}
               {activeView === 'expenses' && 'View and manage all expenses'}
@@ -998,6 +1088,118 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
             />
           )}
           {activeView === 'settings' && <Settings />}
+          {activeView === 'membersBalance' && canAccessPayments && (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <div className="bg-gradient-to-r from-amber-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-amber-100 text-sm font-medium">Members owing</p>
+                      <p className="text-3xl font-bold mt-1">{balancePagination.totalCount}</p>
+                    </div>
+                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+                      <Users className="w-7 h-7 text-white" />
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-gradient-to-r from-slate-700 to-slate-900 rounded-2xl p-6 text-white shadow-lg">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-slate-200 text-sm font-medium">Total balance owed</p>
+                      <p className="text-3xl font-bold mt-1">${totalBalanceOwed.toFixed(2)}</p>
+                    </div>
+                    <div className="w-12 h-12 bg-white/15 rounded-xl flex items-center justify-center shrink-0">
+                      <Wallet className="w-7 h-7 text-amber-300" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 mb-6 border border-gray-100">
+                <div className="relative flex-1 min-w-0">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    placeholder="Search by name or phone..."
+                    value={balanceSearch}
+                    onChange={(e) => {
+                      setBalanceSearch(e.target.value);
+                      setBalancePage(1);
+                    }}
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg
+                              focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400
+                              bg-gray-50/50 text-gray-900 placeholder-gray-400
+                              transition-all duration-200"
+                  />
+                </div>
+              </div>
+
+              {balanceLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className="bg-white rounded-2xl shadow-sm p-6 h-64 animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-4" />
+                      <div className="h-3 bg-gray-200 rounded w-1/2 mb-2" />
+                      <div className="h-3 bg-gray-200 rounded w-2/3 mb-4" />
+                      <div className="h-20 bg-gray-200 rounded mb-4" />
+                      <div className="h-8 bg-gray-200 rounded" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {balanceCustomers.map((customer) => (
+                    <CustomerCard
+                      key={customer.id}
+                      customer={customer}
+                      isSelected={selectedCustomers.includes(customer.id)}
+                      onSelect={() => toggleCustomerSelection(customer.id)}
+                      onClick={handleCustomerClick}
+                      showPaymentInfo
+                    />
+                  ))}
+                </div>
+              )}
+
+              {!balanceLoading && balanceCustomers.length === 0 && (
+                <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-200">
+                  <div className="text-gray-400 text-8xl mb-6">✓</div>
+                  <h3 className="text-2xl font-bold text-gray-600 mb-2">No outstanding balances</h3>
+                  <p className="text-gray-500 max-w-md mx-auto">
+                    {balanceSearch.trim()
+                      ? 'No members with a balance match your search.'
+                      : 'All members have a zero balance.'}
+                  </p>
+                </div>
+              )}
+
+              {balancePagination.totalPages > 1 && (
+                <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 mt-6 sm:mt-8 overflow-x-auto">
+                  <button
+                    type="button"
+                    onClick={() => paginateBalance(balancePagination.currentPage - 1)}
+                    disabled={!balancePagination.hasPrev || balanceLoading}
+                    className="flex items-center space-x-2 px-4 py-2 border text-black border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span>Previous</span>
+                  </button>
+                  <span className="text-sm text-gray-600">
+                    Page {balancePagination.currentPage} of {balancePagination.totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => paginateBalance(balancePagination.currentPage + 1)}
+                    disabled={!balancePagination.hasNext || balanceLoading}
+                    className="flex items-center space-x-2 text-black px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </>
+          )}
           {activeView === 'members' && (
             <>
 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
@@ -1401,7 +1603,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
             onClose={() => setIsRenewalModalOpen(false)}
             onRenew={handleRenewal}
             selectedCount={selectedCustomers.length}
-            selectedCustomers={customers.filter(c => selectedCustomers.includes(c.id))}
+            selectedCustomers={membersListForModals.filter((c) => selectedCustomers.includes(c.id))}
             currentUser={session?.user}
           />
 

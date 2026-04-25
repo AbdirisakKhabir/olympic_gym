@@ -1,6 +1,8 @@
 // app/api/customers/route.js
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import { PrismaClient } from "@prisma/client";
+import { authOptions } from "@/app/lib/auth";
 import {
   applyMemberGenderAccessToWhere,
   getMemberGenderAccessForSessionUser,
@@ -24,6 +26,13 @@ export async function GET(request) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "200");
     const skip = (page - 1) * limit;
+
+    if (type === "hasBalance") {
+      const session = await getServerSession(authOptions);
+      if (!session?.user || session.user.role !== "admin") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
 
     // Build where clause for filtering
     let where = {};
@@ -63,6 +72,9 @@ export async function GET(request) {
               lte: nextWeek,
             },
           };
+          break;
+        case "hasBalance":
+          where = { balance: { gt: 0 } };
           break;
         default:
           // If unknown type, don't apply any filters (show all)
@@ -141,7 +153,24 @@ export async function GET(request) {
       }
     }
 
+    if (type === "hasBalance" && search) {
+      where = {
+        AND: [
+          { balance: { gt: 0 } },
+          {
+            OR: [
+              { name: { contains: search } },
+              { phone: { contains: search } },
+            ],
+          },
+        ],
+      };
+    }
+
     where = applyMemberGenderAccessToWhere(where, scope.access);
+
+    const orderBy =
+      type === "hasBalance" ? { balance: "desc" } : { registerDate: "desc" };
 
     // Get customers with pagination
     const [customers, totalCount] = await Promise.all([
@@ -171,7 +200,7 @@ export async function GET(request) {
             },
           },
         },
-        orderBy: { registerDate: "desc" },
+        orderBy,
         skip,
         take: limit,
       }),
