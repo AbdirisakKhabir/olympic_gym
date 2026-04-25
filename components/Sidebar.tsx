@@ -37,6 +37,8 @@ interface SidebarProps {
   onToggle?: () => void;
   /** Only admin: Payments, Payments Report, Income Statement (no payment/income UI for others) */
   canAccessPayments?: boolean;
+  /** Admin or role with members:outstanding_balance — Outstanding balances under Members */
+  canViewOutstandingBalance?: boolean;
   /** Admin-only sections: Users, Reports, Expenses, Settings. Non-admins only see Dashboard + Members. */
   isAdmin?: boolean;
 }
@@ -59,6 +61,7 @@ export default function Sidebar({
   isOpen = true,
   onToggle,
   canAccessPayments = true,
+  canViewOutstandingBalance = false,
   isAdmin = true,
 }: SidebarProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -150,7 +153,7 @@ export default function Sidebar({
             <div className="pl-4 pb-2 space-y-1">
               {menuItem(onMembersList, <Users className="w-4 h-4 text-blue-300" />, 'Members List')}
               {menuItem(onAddMember, <UserPlus className="w-4 h-4 text-blue-300" />, 'Add New Member')}
-              {canAccessPayments &&
+              {canViewOutstandingBalance &&
                 onMembersWithBalance &&
                 menuItem(
                   onMembersWithBalance,

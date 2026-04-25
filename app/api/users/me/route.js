@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import { PrismaClient } from "@prisma/client";
 import { normalizeMemberGenderAccess } from "@/app/lib/memberGenderAccess";
+import { getPermissionCodesForUserId } from "@/app/lib/userPermissions";
 
 const prisma = new PrismaClient();
 
@@ -29,9 +30,11 @@ export async function GET() {
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
+    const permissionCodes = await getPermissionCodesForUserId(userId);
     return NextResponse.json({
       ...user,
       memberGenderAccess: normalizeMemberGenderAccess(user.memberGenderAccess),
+      permissionCodes,
     });
   } catch (e) {
     console.error(e);

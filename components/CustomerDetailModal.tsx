@@ -14,6 +14,8 @@ interface CustomerDetailModalProps {
   currentUserId?: string | null;
   /** Only admin can record payments; when false, Record Payment section is hidden */
   canAccessPayments?: boolean;
+  /** Show balance owed and monthly fee in summary (e.g. staff with members:outstanding_balance) */
+  canViewBalanceInfo?: boolean;
 }
 
 // Define Payment type since you're using it
@@ -34,6 +36,7 @@ export default function CustomerDetailModal({
   onPaymentRecorded,
   currentUserId,
   canAccessPayments = true,
+  canViewBalanceInfo = false,
 }: CustomerDetailModalProps) {
   const [customerPayments, setCustomerPayments] = useState<Payment[]>([]);
   const [loadingPayments, setLoadingPayments] = useState(false);
@@ -469,7 +472,7 @@ export default function CustomerDetailModal({
           <div className="bg-blue-50 rounded-2xl p-6">
             <h4 className="text-lg font-semibold text-gray-900 mb-4">Membership Summary</h4>
             <div className="grid grid-cols-2 gap-4 text-sm">
-              {canAccessPayments && (
+              {(canAccessPayments || canViewBalanceInfo) && (
               <div>
                 <p className="text-gray-600">Balance Owed</p>
                 <p className={`text-lg font-semibold ${(customer.balance ?? 0) > 0 ? 'text-amber-600' : 'text-gray-900'}`}>
@@ -493,7 +496,7 @@ export default function CustomerDetailModal({
                   {customer.isActive ? 'Active' : 'Inactive'}
                 </p>
               </div>
-              {canAccessPayments && (
+              {(canAccessPayments || canViewBalanceInfo) && (
               <div>
                 <p className="text-gray-600">Monthly Fee</p>
                 <p className="font-semibold text-gray-900">${customer.fee || '0'}</p>

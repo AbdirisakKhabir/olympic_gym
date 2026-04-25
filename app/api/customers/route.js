@@ -4,6 +4,10 @@ import { getServerSession } from "next-auth";
 import { PrismaClient } from "@prisma/client";
 import { authOptions } from "@/app/lib/auth";
 import {
+  getPermissionCodesForUserId,
+  PERMISSION_MEMBERS_OUTSTANDING_BALANCE,
+} from "@/app/lib/userPermissions";
+import {
   applyMemberGenderAccessToWhere,
   getMemberGenderAccessForSessionUser,
 } from "@/app/lib/memberGenderAccess";
@@ -29,7 +33,18 @@ export async function GET(request) {
 
     if (type === "hasBalance") {
       const session = await getServerSession(authOptions);
-      if (!session?.user || session.user.role !== "admin") {
+      if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      const uid = parseInt(session.user.id, 10);
+      if (Number.isNaN(uid)) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      const isAdmin = session.user.role === "admin";
+      const codes = await getPermissionCodesForUserId(uid);
+      const mayView =
+        isAdmin || codes.includes(PERMISSION_MEMBERS_OUTSTANDING_BALANCE);
+      if (!mayView) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
     }

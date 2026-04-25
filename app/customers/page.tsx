@@ -22,6 +22,7 @@ import IncomeStatementModal from '@/components/IncomeStatementModal';
 import Sidebar from '@/components/Sidebar';
 import Dashboard from '@/components/Dashboard';
 import Settings from '@/components/Settings';
+import { PERMISSION_MEMBERS_OUTSTANDING_BALANCE } from '@/app/lib/permissionCodes';
 
 // Payment types
 interface Payment {
@@ -346,11 +347,17 @@ export default function CustomersPage() {
     hasNext: false,
     hasPrev: false,
   });
+  const [permissionCodes, setPermissionCodes] = useState<string[]>([]);
+  const [permissionsReady, setPermissionsReady] = useState(false);
 
   const router = useRouter();
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'admin';
   const canAccessPayments = isAdmin;
+  const canViewOutstandingBalance = useMemo(
+    () => isAdmin || permissionCodes.includes(PERMISSION_MEMBERS_OUTSTANDING_BALANCE),
+    [isAdmin, permissionCodes]
+  );
   // TEMP: comment-out member SMS/WhatsApp reminder feature until re-enabled.
   const ENABLE_MEMBER_SMS = false;
   // Effects
@@ -363,16 +370,24 @@ export default function CustomersPage() {
     (async () => {
       try {
         const res = await fetch('/api/users/me');
-        if (!res.ok) return;
-        const u = await res.json();
-        if (!cancelled && u?.memberGenderAccess) {
-          const g = String(u.memberGenderAccess).toLowerCase();
-          if (g === 'male' || g === 'female' || g === 'both') {
-            setMemberGenderAccess(g);
+        if (res.ok) {
+          const u = await res.json();
+          if (!cancelled) {
+            if (u?.memberGenderAccess) {
+              const g = String(u.memberGenderAccess).toLowerCase();
+              if (g === 'male' || g === 'female' || g === 'both') {
+                setMemberGenderAccess(g);
+              }
+            }
+            if (Array.isArray(u?.permissionCodes)) {
+              setPermissionCodes(u.permissionCodes);
+            }
           }
         }
       } catch {
         /* ignore */
+      } finally {
+        if (!cancelled) setPermissionsReady(true);
       }
     })();
     return () => {
@@ -401,16 +416,19 @@ export default function CustomersPage() {
 
   // Non-admin: only dashboard + members; redirect away from admin-only views
   useEffect(() => {
-    if (
-      !isAdmin &&
-      ['payments', 'users', 'expenses', 'settings', 'membersBalance'].includes(activeView)
-    ) {
+    if (!permissionsReady) return;
+    if (isAdmin) return;
+    if (['payments', 'users', 'expenses', 'settings'].includes(activeView)) {
+      setActiveView('dashboard');
+      return;
+    }
+    if (activeView === 'membersBalance' && !canViewOutstandingBalance) {
       setActiveView('dashboard');
     }
-  }, [activeView, isAdmin]);
+  }, [activeView, isAdmin, canViewOutstandingBalance, permissionsReady]);
 
   useEffect(() => {
-    if (activeView !== 'membersBalance' || !canAccessPayments) return;
+    if (activeView !== 'membersBalance' || !canViewOutstandingBalance) return;
     let cancelled = false;
     (async () => {
       try {
@@ -454,7 +472,7 @@ export default function CustomersPage() {
     return () => {
       cancelled = true;
     };
-  }, [activeView, balancePage, balanceSearch, balanceListVersion, canAccessPayments]);
+  }, [activeView, balancePage, balanceSearch, balanceListVersion, canViewOutstandingBalance]);
 
   const totalBalanceOwed = useMemo(
     () => balanceCustomers.reduce((sum, c) => sum + (Number(c.balance) || 0), 0),
@@ -1026,6 +1044,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen((prev) => !prev)}
         canAccessPayments={canAccessPayments}
+        canViewOutstandingBalance={canViewOutstandingBalance}
         isAdmin={isAdmin}
       />
 
@@ -1088,7 +1107,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
             />
           )}
           {activeView === 'settings' && <Settings />}
-          {activeView === 'membersBalance' && canAccessPayments && (
+          {activeView === 'membersBalance' && canViewOutstandingBalance && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <div className="bg-gradient-to-r from-amber-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg">
@@ -1583,6 +1602,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
             onPaymentRecorded={handlePaymentRecorded}
             currentUserId={session?.user?.id}
             canAccessPayments={canAccessPayments}
+            canViewBalanceInfo={canViewOutstandingBalance && !canAccessPayments}
           />
 
           <CustomerModal

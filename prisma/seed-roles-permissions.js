@@ -11,6 +11,11 @@ const DEFAULT_PERMISSIONS = [
   { code: "members:create", name: "Create Members", description: "Add new members" },
   { code: "members:edit", name: "Edit Members", description: "Edit member details" },
   { code: "members:delete", name: "Delete Members", description: "Delete members" },
+  {
+    code: "members:outstanding_balance",
+    name: "View Outstanding Balances",
+    description: "View members with money owed and balance amounts",
+  },
   { code: "payments:view", name: "View Payments", description: "View payments" },
   { code: "payments:create", name: "Create Payments", description: "Record payments" },
   { code: "users:view", name: "View Users", description: "View users list" },
@@ -36,6 +41,7 @@ const DEFAULT_ROLES = [
     description: "Manage members, payments, reports, and expenses",
     permissionCodes: [
       "members:view", "members:create", "members:edit", "members:delete",
+      "members:outstanding_balance",
       "payments:view", "payments:create",
       "users:view",
       "reports:view",
@@ -47,6 +53,7 @@ const DEFAULT_ROLES = [
     description: "Basic access - members and payments",
     permissionCodes: [
       "members:view", "members:create", "members:edit",
+      "members:outstanding_balance",
       "payments:view", "payments:create",
       "reports:view",
       "expenses:view",
