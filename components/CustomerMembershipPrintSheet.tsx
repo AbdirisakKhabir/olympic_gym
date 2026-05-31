@@ -22,14 +22,25 @@ function membershipDuration(registerDate: Date | string) {
   const months =
     (now.getFullYear() - reg.getFullYear()) * 12 +
     (now.getMonth() - reg.getMonth());
-  return months > 0 ? `${months} month${months > 1 ? 's' : ''}` : 'New Member';
+  return months > 0 ? `${months} mo` : 'New';
 }
 
 function membershipStatus(customer: Customer) {
   const expireDate = customer.expireDate ? new Date(customer.expireDate) : null;
-  if (!expireDate) return 'No expiry date';
+  if (!expireDate) return 'No expiry';
   if (expireDate < new Date()) return 'Expired';
   return 'Active';
+}
+
+function bodyMetricsLine(customer: Customer): string | null {
+  const parts: string[] = [];
+  if (customer.height != null) parts.push(`${Number(customer.height).toFixed(1)} cm`);
+  if (customer.weight != null) parts.push(`${Number(customer.weight).toFixed(1)} kg`);
+  if (customer.bmi != null) parts.push(`BMI ${Number(customer.bmi).toFixed(2)}`);
+  if (customer.standardWeight != null) {
+    parts.push(`Std ${Number(customer.standardWeight).toFixed(1)} kg`);
+  }
+  return parts.length > 0 ? parts.join(' · ') : null;
 }
 
 export default function CustomerMembershipPrintSheet({
@@ -39,40 +50,27 @@ export default function CustomerMembershipPrintSheet({
   const expireDate = customer.expireDate ? new Date(customer.expireDate) : null;
   const isExpired = expireDate ? expireDate < new Date() : false;
   const daysLeft = expireDate
-    ? Math.ceil(
-        (expireDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-      )
+    ? Math.ceil((expireDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null;
 
   const statusLabel = (() => {
-    if (!expireDate) return 'No expiry date set';
-    if (isExpired) return 'Membership expired';
+    if (!expireDate) return 'No expiry date';
+    if (isExpired) return 'Expired';
     if (daysLeft === 0) return 'Expires today';
-    if (daysLeft === 1) return '1 day remaining';
-    return `${daysLeft} days remaining`;
+    if (daysLeft === 1) return '1 day left';
+    return `${daysLeft} days left`;
   })();
 
-  const hasBodyMetrics =
-    customer.height != null ||
-    customer.weight != null ||
-    customer.bmi != null ||
-    customer.standardWeight != null;
+  const metricsLine = bodyMetricsLine(customer);
 
   return (
-    <div
-      className="membership-print-sheet hidden print:block"
-      aria-hidden="true"
-    >
+    <div className="membership-print-sheet" aria-hidden="true">
       <div className="membership-print-inner">
         <header className="membership-print-header">
-          <img
-            src="/logo.jpg"
-            alt="Olympic Gym"
-            className="membership-print-logo"
-          />
-          <div>
-            <h1 className="membership-print-title">Olympic Gym</h1>
-            <p className="membership-print-subtitle">Customer Membership Summary</p>
+          <img src="/logo.jpg" alt="" className="membership-print-logo" />
+          <div className="membership-print-header-text">
+            <h1>Olympic Gym</h1>
+            <p>Membership Summary</p>
           </div>
         </header>
 
@@ -83,11 +81,27 @@ export default function CustomerMembershipPrintSheet({
             className="membership-print-photo"
           />
           <div className="membership-print-profile-text">
-            <h2 className="membership-print-name">{customer.name}</h2>
-            <p>Member ID: {customer.id}</p>
-            <p>Phone: {customer.phone || '—'}</p>
-            <p className="capitalize">Gender: {customer.gender || '—'}</p>
-            {customer.shift && <p>Shift: {customer.shift}</p>}
+            <h2>{customer.name}</h2>
+            <dl>
+              <div>
+                <dt>ID</dt>
+                <dd>{customer.id}</dd>
+              </div>
+              <div>
+                <dt>Phone</dt>
+                <dd>{customer.phone || '—'}</dd>
+              </div>
+              <div>
+                <dt>Gender</dt>
+                <dd className="capitalize">{customer.gender || '—'}</dd>
+              </div>
+              {customer.shift && (
+                <div>
+                  <dt>Shift</dt>
+                  <dd>{customer.shift}</dd>
+                </div>
+              )}
+            </dl>
           </div>
         </section>
 
@@ -106,15 +120,15 @@ export default function CustomerMembershipPrintSheet({
               <td>{formatShortDate(customer.expireDate)}</td>
             </tr>
             <tr>
-              <th>Membership duration</th>
+              <th>Duration</th>
               <td>{membershipDuration(customer.registerDate)}</td>
             </tr>
             <tr>
-              <th>Account status</th>
+              <th>Account</th>
               <td>{customer.isActive ? 'Active' : 'Inactive'}</td>
             </tr>
             <tr>
-              <th>Membership status</th>
+              <th>Membership</th>
               <td>{membershipStatus(customer)}</td>
             </tr>
             {showFinancialInfo && (
@@ -129,45 +143,17 @@ export default function CustomerMembershipPrintSheet({
                 </tr>
               </>
             )}
+            {metricsLine && (
+              <tr>
+                <th>Body metrics</th>
+                <td>{metricsLine}</td>
+              </tr>
+            )}
           </tbody>
         </table>
 
-        {hasBodyMetrics && (
-          <section className="membership-print-section">
-            <h3>Body metrics</h3>
-            <table className="membership-print-table">
-              <tbody>
-                {customer.height != null && (
-                  <tr>
-                    <th>Height</th>
-                    <td>{Number(customer.height).toFixed(1)} cm</td>
-                  </tr>
-                )}
-                {customer.weight != null && (
-                  <tr>
-                    <th>Weight</th>
-                    <td>{Number(customer.weight).toFixed(1)} kg</td>
-                  </tr>
-                )}
-                {customer.bmi != null && (
-                  <tr>
-                    <th>BMI</th>
-                    <td>{Number(customer.bmi).toFixed(2)}</td>
-                  </tr>
-                )}
-                {customer.standardWeight != null && (
-                  <tr>
-                    <th>Standard weight</th>
-                    <td>{Number(customer.standardWeight).toFixed(1)} kg</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </section>
-        )}
-
         <footer className="membership-print-footer">
-          <p>Printed: {new Date().toLocaleString()}</p>
+          Printed {new Date().toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}
         </footer>
       </div>
     </div>

@@ -6,6 +6,24 @@ import Swal from 'sweetalert2';
 import CustomerMembershipPrintSheet, {
   triggerMembershipPrint,
 } from '@/components/CustomerMembershipPrintSheet';
+import {
+  AlertCircle,
+  Banknote,
+  Calendar,
+  CalendarClock,
+  Circle,
+  Clock,
+  Loader2,
+  MessageCircle,
+  Pencil,
+  Phone,
+  Printer,
+  Trash2,
+  User,
+  X,
+  Activity,
+  CheckCircle2,
+} from 'lucide-react';
 
 interface CustomerDetailModalProps {
   isOpen: boolean;
@@ -179,13 +197,24 @@ export default function CustomerDetailModal({
     return `${daysUntilExpiry} Days Left`;
   };
 
-  const getStatusIcon = () => {
-    if (!expireDate) return '⚫';
-    if (isExpired) return '🔴';
-    if (daysUntilExpiry && daysUntilExpiry <= 3) return '🟠';
-    if (daysUntilExpiry && daysUntilExpiry <= 7) return '🟡';
-    return '🟢';
+  const StatusIcon = () => {
+    const className = 'w-5 h-5 shrink-0';
+    if (!expireDate) return <Circle className={className} aria-hidden />;
+    if (isExpired) return <AlertCircle className={className} aria-hidden />;
+    if (daysUntilExpiry != null && daysUntilExpiry <= 3) {
+      return <AlertCircle className={className} aria-hidden />;
+    }
+    if (daysUntilExpiry != null && daysUntilExpiry <= 7) {
+      return <Clock className={className} aria-hidden />;
+    }
+    return <CheckCircle2 className={className} aria-hidden />;
   };
+
+  const footerBtn =
+    'group min-h-[48px] rounded-xl font-semibold transition-all duration-200 touch-manipulation flex items-center justify-center gap-2.5 shadow-sm hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:active:scale-100';
+
+  const footerIconWrap = (bg: string) =>
+    `flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${bg}`;
 
   const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString('en-US', {
@@ -296,17 +325,17 @@ export default function CustomerDetailModal({
               <p className="text-blue-100 mt-1 sm:mt-2 text-sm sm:text-base">Complete customer information</p>
             </div>
             <button
+              type="button"
               onClick={onClose}
               className="text-white hover:text-blue-200 transition-colors p-2 rounded-full hover:bg-white/20"
+              aria-label="Close"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="w-6 h-6" strokeWidth={2} />
             </button>
           </div>
         </div>
 
-        <div className="p-4 sm:p-6 flex-1 min-h-0 overflow-y-auto overscroll-contain">
+        <div className="p-4 sm:p-6 pb-2 flex-1 min-h-0 overflow-y-auto overscroll-contain">
           {/* Customer Profile */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-6">
             <button
@@ -328,22 +357,16 @@ export default function CustomerDetailModal({
               <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 break-words">{customer.name}</h3>
               <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 sm:gap-4 text-gray-600">
                 <div className="flex items-center space-x-2">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                  </svg>
+                  <Phone className="w-5 h-5 text-gray-500 shrink-0" aria-hidden />
                   <span className="font-medium">{formatPhoneNumber(customer.phone)}</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
+                  <User className="w-5 h-5 text-gray-500 shrink-0" aria-hidden />
                   <span className="font-medium capitalize">{customer.gender || 'Member'}</span>
                 </div>
                 {customer.shift && (
                   <div className="flex items-center space-x-2">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                    </svg>
+                    <Clock className="w-5 h-5 text-gray-500 shrink-0" aria-hidden />
                     <span className="font-medium">{customer.shift}</span>
                   </div>
                 )}
@@ -352,10 +375,8 @@ export default function CustomerDetailModal({
           </div>
 
           {/* Status Badge */}
-          <div className={`inline-flex items-center px-3 sm:px-4 py-2 rounded-full text-base sm:text-lg font-semibold ${getStatusColor()} mb-6`}>
-            <span className="mr-2 text-xl">
-              {getStatusIcon()}
-            </span>
+          <div className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full text-base sm:text-lg font-semibold ${getStatusColor()} mb-6`}>
+            <StatusIcon />
             {getStatusText()}
           </div>
 
@@ -396,10 +417,8 @@ export default function CustomerDetailModal({
           {/* Detailed Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div className="bg-gray-50 rounded-2xl p-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <svg className="w-5 h-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                </svg>
+              <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-blue-500 shrink-0" aria-hidden />
                 Registration Details
               </h4>
               <div className="space-y-3">
@@ -415,10 +434,8 @@ export default function CustomerDetailModal({
             </div>
 
             <div className="bg-gray-50 rounded-2xl p-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <svg className="w-5 h-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                </svg>
+              <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <CalendarClock className="w-5 h-5 text-red-500 shrink-0" aria-hidden />
                 Expiry Details
               </h4>
               <div className="space-y-3">
@@ -441,10 +458,8 @@ export default function CustomerDetailModal({
           {/* Body Metrics - only show if any value exists */}
           {(customer.height != null || customer.weight != null || customer.bmi != null || customer.standardWeight != null) && (
             <div className="bg-gray-50 rounded-2xl p-6 mb-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V5z" clipRule="evenodd" />
-                </svg>
+              <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Activity className="w-5 h-5 text-green-500 shrink-0" aria-hidden />
                 Body Metrics
               </h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -515,9 +530,11 @@ export default function CustomerDetailModal({
 
           {/* Record Payment - balance calculation (admin only) */}
           {canAccessPayments && (
-          <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-6 mb-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <span className="mr-2">💵</span>
+          <div className="bg-gradient-to-br from-amber-50 via-amber-50/90 to-orange-50/60 border border-amber-200/90 rounded-2xl p-6 shadow-sm">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                <Banknote className="w-5 h-5" aria-hidden />
+              </span>
               Record Payment
             </h4>
             {/* Existing balance - always visible */}
@@ -570,13 +587,18 @@ export default function CustomerDetailModal({
                 </p>
               </div>
             </div>
-            <div className="mt-4 flex justify-end">
+            <div className="mt-5 flex justify-end">
               <button
                 type="button"
                 onClick={handleRecordPayment}
                 disabled={isSubmittingPayment || paidNum <= 0}
-                className="px-5 py-2.5 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-xl font-semibold shadow-md shadow-green-600/25 hover:from-emerald-700 hover:to-green-700 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all duration-200"
               >
+                {isSubmittingPayment ? (
+                  <Loader2 className="w-5 h-5 animate-spin" aria-hidden />
+                ) : (
+                  <Banknote className="w-5 h-5" aria-hidden />
+                )}
                 {isSubmittingPayment ? 'Recording...' : 'Record Payment'}
               </button>
             </div>
@@ -584,64 +606,81 @@ export default function CustomerDetailModal({
           )}
         </div>
 
-        {/* Footer Actions — shrink-0 keeps actions visible; body scrolls above on short viewports */}
-        <div className="shrink-0 border-t border-gray-200 p-4 sm:p-6 pb-[max(1rem,env(safe-area-inset-bottom))] bg-gray-50">
-          <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:flex-wrap">
-            <button
-              type="button"
-              onClick={handlePrintSummary}
-              disabled={isDeleting}
-              className="w-full sm:flex-1 min-h-[48px] px-4 sm:px-6 py-3 border-2 border-blue-200 text-blue-700 bg-blue-50 rounded-xl hover:bg-blue-100 active:bg-blue-200 transition-all duration-200 font-semibold disabled:opacity-50 touch-manipulation flex items-center justify-center gap-2"
-            >
-              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              <span>Print Summary (A5)</span>
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isDeleting}
-              className="w-full sm:flex-1 min-h-[48px] px-4 sm:px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 active:bg-gray-200 transition-all duration-200 font-semibold disabled:opacity-50 touch-manipulation"
-            >
-              Close
-            </button>
-            <button
-              type="button"
-              onClick={handleWhatsAppClick}
-              disabled={isWhatsAppDisabled || isDeleting}
-              className={`w-full sm:flex-1 min-h-[48px] px-4 sm:px-6 py-3 rounded-xl transition-all duration-200 font-semibold flex items-center justify-center gap-2 touch-manipulation ${
-                isWhatsAppDisabled || isDeleting
-                  ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                  : 'bg-green-500 text-white hover:bg-green-600 active:bg-green-700'
-              }`}
-            >
-              <span aria-hidden>💬</span>
-              <span>{isWhatsAppDisabled ? 'No Phone Number' : 'Send WhatsApp'}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onEdit(customer);
-                onClose();
-              }}
-              disabled={isDeleting}
-              className="w-full sm:flex-1 min-h-[48px] px-4 sm:px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 active:bg-blue-700 transition-all duration-200 font-semibold flex items-center justify-center gap-2 disabled:opacity-50 touch-manipulation"
-            >
-              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              <span>Edit Customer</span>
-            </button>
+        {/* Footer actions — spaced from scroll content / payment card */}
+        <div className="shrink-0 mt-5 sm:mt-6 border-t border-gray-200/90 p-4 sm:p-6 pt-5 sm:pt-6 pb-[max(1rem,env(safe-area-inset-bottom))] bg-gradient-to-b from-slate-50 to-white shadow-[0_-8px_24px_-12px_rgba(15,23,42,0.12)]">
+          <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <button
+                type="button"
+                onClick={handlePrintSummary}
+                disabled={isDeleting}
+                className={`${footerBtn} w-full px-4 py-3 border border-indigo-200/80 bg-white text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300`}
+              >
+                <span className={footerIconWrap('bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200')}>
+                  <Printer className="w-4 h-4" strokeWidth={2} aria-hidden />
+                </span>
+                <span>Print Summary (A5)</span>
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isDeleting}
+                className={`${footerBtn} w-full px-4 py-3 border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300`}
+              >
+                <span className={footerIconWrap('bg-gray-100 text-gray-600 group-hover:bg-gray-200')}>
+                  <X className="w-4 h-4" strokeWidth={2} aria-hidden />
+                </span>
+                <span>Close</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleWhatsAppClick}
+                disabled={isWhatsAppDisabled || isDeleting}
+                className={`${footerBtn} w-full px-4 py-3 ${
+                  isWhatsAppDisabled || isDeleting
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-md shadow-green-600/20 hover:from-emerald-600 hover:to-green-700 hover:shadow-lg'
+                }`}
+              >
+                <span
+                  className={footerIconWrap(
+                    isWhatsAppDisabled || isDeleting
+                      ? 'bg-gray-300/50 text-gray-400'
+                      : 'bg-white/20 text-white'
+                  )}
+                >
+                  <MessageCircle className="w-4 h-4" strokeWidth={2} aria-hidden />
+                </span>
+                <span>{isWhatsAppDisabled ? 'No Phone Number' : 'Send WhatsApp'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onEdit(customer);
+                  onClose();
+                }}
+                disabled={isDeleting}
+                className={`${footerBtn} w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md shadow-blue-600/20 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg`}
+              >
+                <span className={footerIconWrap('bg-white/20 text-white')}>
+                  <Pencil className="w-4 h-4" strokeWidth={2} aria-hidden />
+                </span>
+                <span>Edit Customer</span>
+              </button>
+            </div>
             <button
               type="button"
               onClick={handleDelete}
               disabled={isDeleting}
-              className="w-full sm:flex-1 min-h-[48px] px-4 sm:px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 active:bg-red-700 transition-all duration-200 font-semibold flex items-center justify-center gap-2 disabled:opacity-50 touch-manipulation"
+              className={`${footerBtn} w-full px-4 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-md shadow-red-600/20 hover:from-red-600 hover:to-rose-700 hover:shadow-lg`}
             >
-              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
+              {isDeleting ? (
+                <Loader2 className="w-5 h-5 animate-spin" aria-hidden />
+              ) : (
+                <span className={footerIconWrap('bg-white/20 text-white')}>
+                  <Trash2 className="w-4 h-4" strokeWidth={2} aria-hidden />
+                </span>
+              )}
               <span>{isDeleting ? 'Deleting...' : 'Delete Member'}</span>
             </button>
           </div>
