@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
+import { sessionMayViewPayments } from "@/app/lib/userPermissions";
 import { PrismaClient } from "@prisma/client";
 import {
   customerGenderMatchesAccess,
@@ -12,7 +13,7 @@ const prisma = new PrismaClient();
 
 export async function GET(request, { params }) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.role || session.user.role !== "admin") {
+  if (!(await sessionMayViewPayments(session))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   try {

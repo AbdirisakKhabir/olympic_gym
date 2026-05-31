@@ -133,7 +133,7 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === 'development',
 };
 
-/** Admin-only: payments, balances, income statement, payment reminders, renewal payments. */
+/** Admin-only sidebar: global payments list, reports, income statement, renewal payments. */
 export function canAccessPayments(role: string | undefined): boolean {
   return role === 'admin';
 }

@@ -3,6 +3,9 @@
 import { Customer } from '@/types/customer';
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import CustomerMembershipPrintSheet, {
+  triggerMembershipPrint,
+} from '@/components/CustomerMembershipPrintSheet';
 
 interface CustomerDetailModalProps {
   isOpen: boolean;
@@ -12,7 +15,7 @@ interface CustomerDetailModalProps {
   onPaymentRecorded?: (customer: Customer) => void;
   customer: Customer | null;
   currentUserId?: string | null;
-  /** Only admin can record payments; when false, Record Payment section is hidden */
+  /** Users with payments:create (e.g. staff) can record payments; when false, Record Payment is hidden */
   canAccessPayments?: boolean;
   /** Show balance owed and monthly fee in summary (e.g. staff with members:outstanding_balance) */
   canViewBalanceInfo?: boolean;
@@ -235,6 +238,11 @@ export default function CustomerDetailModal({
   };
 
   const isWhatsAppDisabled = !customer.phone;
+  const showFinancialOnPrint = canAccessPayments || canViewBalanceInfo;
+
+  const handlePrintSummary = () => {
+    triggerMembershipPrint();
+  };
 
   const handleDelete = async () => {
     const result = await Swal.fire({
@@ -581,6 +589,17 @@ export default function CustomerDetailModal({
           <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:flex-wrap">
             <button
               type="button"
+              onClick={handlePrintSummary}
+              disabled={isDeleting}
+              className="w-full sm:flex-1 min-h-[48px] px-4 sm:px-6 py-3 border-2 border-blue-200 text-blue-700 bg-blue-50 rounded-xl hover:bg-blue-100 active:bg-blue-200 transition-all duration-200 font-semibold disabled:opacity-50 touch-manipulation flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              <span>Print Summary (A5)</span>
+            </button>
+            <button
+              type="button"
               onClick={onClose}
               disabled={isDeleting}
               className="w-full sm:flex-1 min-h-[48px] px-4 sm:px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 active:bg-gray-200 transition-all duration-200 font-semibold disabled:opacity-50 touch-manipulation"
@@ -690,6 +709,10 @@ export default function CustomerDetailModal({
         <p className="text-white/80 text-sm mt-2">Click outside or Close to exit</p>
       </div>
     )}
+    <CustomerMembershipPrintSheet
+      customer={customer}
+      showFinancialInfo={showFinancialOnPrint}
+    />
     </>
   );
 }

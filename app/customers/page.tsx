@@ -22,7 +22,10 @@ import IncomeStatementModal from '@/components/IncomeStatementModal';
 import Sidebar from '@/components/Sidebar';
 import Dashboard from '@/components/Dashboard';
 import Settings from '@/components/Settings';
-import { PERMISSION_MEMBERS_OUTSTANDING_BALANCE } from '@/app/lib/permissionCodes';
+import {
+  PERMISSION_MEMBERS_OUTSTANDING_BALANCE,
+  PERMISSION_PAYMENTS_CREATE,
+} from '@/app/lib/permissionCodes';
 
 // Payment types
 interface Payment {
@@ -354,6 +357,10 @@ export default function CustomersPage() {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'admin';
   const canAccessPayments = isAdmin;
+  const canRecordPayments = useMemo(
+    () => isAdmin || permissionCodes.includes(PERMISSION_PAYMENTS_CREATE),
+    [isAdmin, permissionCodes]
+  );
   const canViewOutstandingBalance = useMemo(
     () => isAdmin || permissionCodes.includes(PERMISSION_MEMBERS_OUTSTANDING_BALANCE),
     [isAdmin, permissionCodes]
@@ -1466,7 +1473,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
                   isSelected={selectedCustomers.includes(customer.id)}
                   onSelect={() => toggleCustomerSelection(customer.id)}
                   onClick={handleCustomerClick}
-                  showPaymentInfo={canAccessPayments}
+                  showPaymentInfo={canRecordPayments || canViewOutstandingBalance}
                 />
               ))
             )}
@@ -1601,8 +1608,8 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
             onDelete={handleDeleteCustomer}
             onPaymentRecorded={handlePaymentRecorded}
             currentUserId={session?.user?.id}
-            canAccessPayments={canAccessPayments}
-            canViewBalanceInfo={canViewOutstandingBalance && !canAccessPayments}
+            canAccessPayments={canRecordPayments}
+            canViewBalanceInfo={canViewOutstandingBalance && !canRecordPayments}
           />
 
           <CustomerModal

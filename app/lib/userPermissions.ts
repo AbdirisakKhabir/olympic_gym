@@ -1,9 +1,42 @@
 import { PrismaClient } from "@prisma/client";
-import { PERMISSION_MEMBERS_OUTSTANDING_BALANCE } from "./permissionCodes";
+import {
+  PERMISSION_MEMBERS_OUTSTANDING_BALANCE,
+  PERMISSION_PAYMENTS_CREATE,
+  PERMISSION_PAYMENTS_VIEW,
+} from "./permissionCodes";
 
 const prisma = new PrismaClient();
 
-export { PERMISSION_MEMBERS_OUTSTANDING_BALANCE };
+export {
+  PERMISSION_MEMBERS_OUTSTANDING_BALANCE,
+  PERMISSION_PAYMENTS_CREATE,
+  PERMISSION_PAYMENTS_VIEW,
+};
+
+export async function sessionMayRecordPayments(session: {
+  user?: { id?: string; role?: string };
+} | null): Promise<boolean> {
+  if (!session?.user?.id) return false;
+  if (session.user.role === "admin") return true;
+  const uid = parseInt(session.user.id, 10);
+  if (Number.isNaN(uid)) return false;
+  const codes = await getPermissionCodesForUserId(uid);
+  return userHasPermission(codes, PERMISSION_PAYMENTS_CREATE);
+}
+
+export async function sessionMayViewPayments(session: {
+  user?: { id?: string; role?: string };
+} | null): Promise<boolean> {
+  if (!session?.user?.id) return false;
+  if (session.user.role === "admin") return true;
+  const uid = parseInt(session.user.id, 10);
+  if (Number.isNaN(uid)) return false;
+  const codes = await getPermissionCodesForUserId(uid);
+  return (
+    userHasPermission(codes, PERMISSION_PAYMENTS_VIEW) ||
+    userHasPermission(codes, PERMISSION_PAYMENTS_CREATE)
+  );
+}
 
 export async function getPermissionCodesForUserId(
   userId: number
