@@ -194,6 +194,17 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    const balance = Number(existing.balance ?? 0);
+    if (balance > 0) {
+      return NextResponse.json(
+        {
+          error:
+            "Cannot delete member with an outstanding balance. Record payment or clear the balance first.",
+        },
+        { status: 400 }
+      );
+    }
+
     await prisma.customer.delete({ where: { id: customerId } });
     return NextResponse.json({ message: "Deleted" });
   } catch (error) {

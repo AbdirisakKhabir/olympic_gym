@@ -270,6 +270,7 @@ export default function CustomerDetailModal({
   };
 
   const isWhatsAppDisabled = !customer.phone;
+  const hasOutstandingBalance = Number(customer.balance ?? 0) > 0;
   const showFinancialOnPrint = canAccessPayments || canViewBalanceInfo;
 
   const handlePrintSummary = () => {
@@ -277,6 +278,16 @@ export default function CustomerDetailModal({
   };
 
   const handleDelete = async () => {
+    if (hasOutstandingBalance) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Cannot delete member',
+        html: `<strong>${customer.name}</strong> has an outstanding balance of <strong>$${Number(customer.balance ?? 0).toFixed(2)}</strong>. Record payment or clear the balance before deleting.`,
+        confirmButtonColor: '#2563eb',
+      });
+      return;
+    }
+
     const result = await Swal.fire({
       title: 'Delete member?',
       html: `Remove <strong>${customer.name}</strong>? This will also delete all their payment records. This cannot be undone.`,
@@ -621,7 +632,7 @@ export default function CustomerDetailModal({
                 <span className={footerIconWrap('bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200')}>
                   <Printer className="w-4 h-4" strokeWidth={2} aria-hidden />
                 </span>
-                <span>Print Summary (A5)</span>
+                <span>Print</span>
               </button>
               <button
                 type="button"
@@ -653,7 +664,7 @@ export default function CustomerDetailModal({
                 >
                   <MessageCircle className="w-4 h-4" strokeWidth={2} aria-hidden />
                 </span>
-                <span>{isWhatsAppDisabled ? 'No Phone Number' : 'Send WhatsApp'}</span>
+                <span>WhatsApp</span>
               </button>
               <button
                 type="button"
@@ -667,23 +678,36 @@ export default function CustomerDetailModal({
                 <span className={footerIconWrap('bg-white/20 text-white')}>
                   <Pencil className="w-4 h-4" strokeWidth={2} aria-hidden />
                 </span>
-                <span>Edit Customer</span>
+                <span>Edit</span>
               </button>
             </div>
             <button
               type="button"
               onClick={handleDelete}
-              disabled={isDeleting}
-              className={`${footerBtn} w-full px-3 py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-md shadow-red-600/20 hover:from-red-600 hover:to-rose-700 hover:shadow-lg`}
+              disabled={isDeleting || hasOutstandingBalance}
+              title={
+                hasOutstandingBalance
+                  ? `Clear outstanding balance ($${Number(customer.balance ?? 0).toFixed(2)}) before deleting`
+                  : 'Delete member'
+              }
+              className={`${footerBtn} w-full px-3 py-2 ${
+                hasOutstandingBalance
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
+                  : 'bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-md shadow-red-600/20 hover:from-red-600 hover:to-rose-700 hover:shadow-lg'
+              }`}
             >
               {isDeleting ? (
                 <Loader2 className="w-5 h-5 animate-spin" aria-hidden />
               ) : (
-                <span className={footerIconWrap('bg-white/20 text-white')}>
+                <span
+                  className={footerIconWrap(
+                    hasOutstandingBalance ? 'bg-gray-400/40 text-gray-500' : 'bg-white/20 text-white'
+                  )}
+                >
                   <Trash2 className="w-4 h-4" strokeWidth={2} aria-hidden />
                 </span>
               )}
-              <span>{isDeleting ? 'Deleting...' : 'Delete Member'}</span>
+              <span>{isDeleting ? 'Deleting...' : 'Delete'}</span>
             </button>
           </div>
         </div>

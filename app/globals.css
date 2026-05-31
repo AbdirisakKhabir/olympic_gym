@@ -141,8 +141,8 @@ canvas {
   }
 
   .membership-print-photo {
-    width: 72px;
-    height: 72px;
+    width: 88px;
+    height: 110px;
     object-fit: cover;
     border-radius: 8px;
     border: 1px solid #d1d5db;
