@@ -22,25 +22,14 @@ function membershipDuration(registerDate: Date | string) {
   const months =
     (now.getFullYear() - reg.getFullYear()) * 12 +
     (now.getMonth() - reg.getMonth());
-  return months > 0 ? `${months} mo` : 'New';
+  return months > 0 ? `${months} month${months > 1 ? 's' : ''}` : 'New Member';
 }
 
 function membershipStatus(customer: Customer) {
   const expireDate = customer.expireDate ? new Date(customer.expireDate) : null;
-  if (!expireDate) return 'No expiry';
+  if (!expireDate) return 'No expiry date';
   if (expireDate < new Date()) return 'Expired';
   return 'Active';
-}
-
-function bodyMetricsLine(customer: Customer): string | null {
-  const parts: string[] = [];
-  if (customer.height != null) parts.push(`${Number(customer.height).toFixed(1)} cm`);
-  if (customer.weight != null) parts.push(`${Number(customer.weight).toFixed(1)} kg`);
-  if (customer.bmi != null) parts.push(`BMI ${Number(customer.bmi).toFixed(2)}`);
-  if (customer.standardWeight != null) {
-    parts.push(`Std ${Number(customer.standardWeight).toFixed(1)} kg`);
-  }
-  return parts.length > 0 ? parts.join(' · ') : null;
 }
 
 export default function CustomerMembershipPrintSheet({
@@ -54,14 +43,18 @@ export default function CustomerMembershipPrintSheet({
     : null;
 
   const statusLabel = (() => {
-    if (!expireDate) return 'No expiry date';
-    if (isExpired) return 'Expired';
+    if (!expireDate) return 'No expiry date set';
+    if (isExpired) return 'Membership expired';
     if (daysLeft === 0) return 'Expires today';
-    if (daysLeft === 1) return '1 day left';
-    return `${daysLeft} days left`;
+    if (daysLeft === 1) return '1 day remaining';
+    return `${daysLeft} days remaining`;
   })();
 
-  const metricsLine = bodyMetricsLine(customer);
+  const hasBodyMetrics =
+    customer.height != null ||
+    customer.weight != null ||
+    customer.bmi != null ||
+    customer.standardWeight != null;
 
   return (
     <div className="membership-print-sheet" aria-hidden="true">
@@ -69,8 +62,8 @@ export default function CustomerMembershipPrintSheet({
         <header className="membership-print-header">
           <img src="/logo.jpg" alt="" className="membership-print-logo" />
           <div className="membership-print-header-text">
-            <h1>Olympic Gym</h1>
-            <p>Membership Summary</p>
+            <h1 className="membership-print-title">Olympic Gym</h1>
+            <p className="membership-print-subtitle">Customer Membership Summary</p>
           </div>
         </header>
 
@@ -81,27 +74,11 @@ export default function CustomerMembershipPrintSheet({
             className="membership-print-photo"
           />
           <div className="membership-print-profile-text">
-            <h2>{customer.name}</h2>
-            <dl>
-              <div>
-                <dt>ID</dt>
-                <dd>{customer.id}</dd>
-              </div>
-              <div>
-                <dt>Phone</dt>
-                <dd>{customer.phone || '—'}</dd>
-              </div>
-              <div>
-                <dt>Gender</dt>
-                <dd className="capitalize">{customer.gender || '—'}</dd>
-              </div>
-              {customer.shift && (
-                <div>
-                  <dt>Shift</dt>
-                  <dd>{customer.shift}</dd>
-                </div>
-              )}
-            </dl>
+            <h2 className="membership-print-name">{customer.name}</h2>
+            <p>Member ID: {customer.id}</p>
+            <p>Phone: {customer.phone || '—'}</p>
+            <p className="capitalize">Gender: {customer.gender || '—'}</p>
+            {customer.shift && <p>Shift: {customer.shift}</p>}
           </div>
         </section>
 
@@ -120,15 +97,15 @@ export default function CustomerMembershipPrintSheet({
               <td>{formatShortDate(customer.expireDate)}</td>
             </tr>
             <tr>
-              <th>Duration</th>
+              <th>Membership duration</th>
               <td>{membershipDuration(customer.registerDate)}</td>
             </tr>
             <tr>
-              <th>Account</th>
+              <th>Account status</th>
               <td>{customer.isActive ? 'Active' : 'Inactive'}</td>
             </tr>
             <tr>
-              <th>Membership</th>
+              <th>Membership status</th>
               <td>{membershipStatus(customer)}</td>
             </tr>
             {showFinancialInfo && (
@@ -143,17 +120,45 @@ export default function CustomerMembershipPrintSheet({
                 </tr>
               </>
             )}
-            {metricsLine && (
-              <tr>
-                <th>Body metrics</th>
-                <td>{metricsLine}</td>
-              </tr>
-            )}
           </tbody>
         </table>
 
+        {hasBodyMetrics && (
+          <section className="membership-print-metrics">
+            <h3>Body metrics</h3>
+            <table className="membership-print-table">
+              <tbody>
+                {customer.height != null && (
+                  <tr>
+                    <th>Height</th>
+                    <td>{Number(customer.height).toFixed(1)} cm</td>
+                  </tr>
+                )}
+                {customer.weight != null && (
+                  <tr>
+                    <th>Weight</th>
+                    <td>{Number(customer.weight).toFixed(1)} kg</td>
+                  </tr>
+                )}
+                {customer.bmi != null && (
+                  <tr>
+                    <th>BMI</th>
+                    <td>{Number(customer.bmi).toFixed(2)}</td>
+                  </tr>
+                )}
+                {customer.standardWeight != null && (
+                  <tr>
+                    <th>Standard weight</th>
+                    <td>{Number(customer.standardWeight).toFixed(1)} kg</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </section>
+        )}
+
         <footer className="membership-print-footer">
-          Printed {new Date().toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}
+          <p>Printed: {new Date().toLocaleString()}</p>
         </footer>
       </div>
     </div>
@@ -161,10 +166,25 @@ export default function CustomerMembershipPrintSheet({
 }
 
 export function triggerMembershipPrint() {
+  const sheet = document.querySelector('.membership-print-sheet');
+  if (!sheet || !(sheet instanceof HTMLElement)) return;
+
+  const parent = sheet.parentNode;
+  const nextSibling = sheet.nextSibling;
+  document.body.appendChild(sheet);
   document.body.classList.add('printing-membership');
+
   const cleanup = () => {
     document.body.classList.remove('printing-membership');
+    if (parent) {
+      if (nextSibling) {
+        parent.insertBefore(sheet, nextSibling);
+      } else {
+        parent.appendChild(sheet);
+      }
+    }
   };
+
   window.addEventListener('afterprint', cleanup, { once: true });
   window.print();
 }

@@ -198,7 +198,7 @@ export default function CustomerDetailModal({
   };
 
   const StatusIcon = () => {
-    const className = 'w-5 h-5 shrink-0';
+    const className = 'w-4 h-4 shrink-0';
     if (!expireDate) return <Circle className={className} aria-hidden />;
     if (isExpired) return <AlertCircle className={className} aria-hidden />;
     if (daysUntilExpiry != null && daysUntilExpiry <= 3) {
@@ -211,10 +211,13 @@ export default function CustomerDetailModal({
   };
 
   const footerBtn =
-    'group min-h-[48px] rounded-xl font-semibold transition-all duration-200 touch-manipulation flex items-center justify-center gap-2.5 shadow-sm hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:active:scale-100';
+    'group min-h-[40px] rounded-lg text-sm font-semibold transition-all duration-200 touch-manipulation flex items-center justify-center gap-2 shadow-sm hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:active:scale-100';
 
   const footerIconWrap = (bg: string) =>
-    `flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${bg}`;
+    `flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors ${bg}`;
+
+  const sectionCard = 'rounded-xl p-3.5 sm:p-4';
+  const sectionTitle = 'text-sm font-semibold text-gray-900 mb-2.5 flex items-center gap-1.5';
 
   const formatDate = (date: Date | string) => {
     return new Date(date).toLocaleDateString('en-US', {
@@ -318,11 +321,11 @@ export default function CustomerDetailModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50 backdrop-blur-sm overflow-y-auto overscroll-y-contain">
       <div className="bg-white rounded-2xl shadow-2xl w-full min-w-0 max-w-[min(42rem,calc(100vw-1rem))] max-h-[min(95vh,100dvh-1rem)] sm:max-h-[90vh] my-auto flex flex-col min-h-0 overflow-hidden">
         {/* Header */}
-        <div className="shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 p-4 sm:p-6 text-white">
-          <div className="flex items-center justify-between gap-4">
+        <div className="shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 p-3 sm:p-4 text-white">
+          <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <h2 className="text-xl sm:text-3xl font-bold truncate">Member Details</h2>
-              <p className="text-blue-100 mt-1 sm:mt-2 text-sm sm:text-base">Complete customer information</p>
+              <h2 className="text-lg sm:text-xl font-bold truncate">Member Details</h2>
+              <p className="text-blue-100 mt-0.5 text-xs sm:text-sm">Complete customer information</p>
             </div>
             <button
               type="button"
@@ -335,38 +338,38 @@ export default function CustomerDetailModal({
           </div>
         </div>
 
-        <div className="p-4 sm:p-6 pb-2 flex-1 min-h-0 overflow-y-auto overscroll-contain">
+        <div className="p-3 sm:p-4 pb-2 flex-1 min-h-0 overflow-y-auto overscroll-contain">
           {/* Customer Profile */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-6">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 mb-4">
             <button
               type="button"
               onClick={() => { setImageZoomOpen(true); setImageZoomScale(1); }}
-              className="relative shrink-0 rounded-2xl border-4 border-gray-200 shadow-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="relative shrink-0 rounded-xl border-2 border-gray-200 shadow-md overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               aria-label="View full size (zoom)"
             >
               <img
                 src={customer.image || '/api/placeholder/200/200'}
                 alt={customer.name}
-                className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 object-cover block"
+                className="w-24 h-24 sm:w-28 sm:h-28 object-cover block"
               />
               <span className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/20 transition-colors text-white text-xs font-medium opacity-0 hover:opacity-100">
                 Zoom
               </span>
             </button>
             <div className="flex-1 text-center sm:text-left w-full">
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 break-words">{customer.name}</h3>
-              <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 sm:gap-4 text-gray-600">
-                <div className="flex items-center space-x-2">
-                  <Phone className="w-5 h-5 text-gray-500 shrink-0" aria-hidden />
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1.5 break-words">{customer.name}</h3>
+              <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 sm:gap-3 text-sm text-gray-600">
+                <div className="flex items-center space-x-1.5">
+                  <Phone className="w-4 h-4 text-gray-500 shrink-0" aria-hidden />
                   <span className="font-medium">{formatPhoneNumber(customer.phone)}</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <User className="w-5 h-5 text-gray-500 shrink-0" aria-hidden />
+                <div className="flex items-center space-x-1.5">
+                  <User className="w-4 h-4 text-gray-500 shrink-0" aria-hidden />
                   <span className="font-medium capitalize">{customer.gender || 'Member'}</span>
                 </div>
                 {customer.shift && (
-                  <div className="flex items-center space-x-2">
-                    <Clock className="w-5 h-5 text-gray-500 shrink-0" aria-hidden />
+                  <div className="flex items-center space-x-1.5">
+                    <Clock className="w-4 h-4 text-gray-500 shrink-0" aria-hidden />
                     <span className="font-medium">{customer.shift}</span>
                   </div>
                 )}
@@ -375,7 +378,7 @@ export default function CustomerDetailModal({
           </div>
 
           {/* Status Badge */}
-          <div className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full text-base sm:text-lg font-semibold ${getStatusColor()} mb-6`}>
+          <div className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold ${getStatusColor()} mb-4`}>
             <StatusIcon />
             {getStatusText()}
           </div>
@@ -415,37 +418,37 @@ export default function CustomerDetailModal({
           </div> */}
 
           {/* Detailed Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-gray-50 rounded-2xl p-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-blue-500 shrink-0" aria-hidden />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <div className={`bg-gray-50 ${sectionCard}`}>
+              <h4 className={sectionTitle}>
+                <Calendar className="w-4 h-4 text-blue-500 shrink-0" aria-hidden />
                 Registration Details
               </h4>
-              <div className="space-y-3">
+              <div className="space-y-2 text-sm">
                 <div>
-                  <p className="text-sm text-gray-600">Registration Date</p>
-                  <p className="text-lg font-semibold text-gray-900">{formatDate(registerDate)}</p>
+                  <p className="text-xs text-gray-600">Registration Date</p>
+                  <p className="font-semibold text-gray-900">{formatDate(registerDate)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Membership Duration</p>
-                  <p className="text-lg font-semibold text-blue-600">{getMembershipDuration()}</p>
+                  <p className="text-xs text-gray-600">Membership Duration</p>
+                  <p className="font-semibold text-blue-600">{getMembershipDuration()}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gray-50 rounded-2xl p-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <CalendarClock className="w-5 h-5 text-red-500 shrink-0" aria-hidden />
+            <div className={`bg-gray-50 ${sectionCard}`}>
+              <h4 className={sectionTitle}>
+                <CalendarClock className="w-4 h-4 text-red-500 shrink-0" aria-hidden />
                 Expiry Details
               </h4>
-              <div className="space-y-3">
+              <div className="space-y-2 text-sm">
                 <div>
-                  <p className="text-sm text-gray-600">Expiry Date</p>
-                  <p className="text-lg font-semibold text-gray-900">{formatExpireDate(customer.expireDate)}</p>
+                  <p className="text-xs text-gray-600">Expiry Date</p>
+                  <p className="font-semibold text-gray-900">{formatExpireDate(customer.expireDate)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Status</p>
-                  <p className={`text-lg font-semibold ${
+                  <p className="text-xs text-gray-600">Status</p>
+                  <p className={`font-semibold ${
                     !expireDate ? 'text-gray-600' : isExpired ? 'text-red-600' : 'text-green-600'
                   }`}>
                     {!expireDate ? 'No Expiry' : isExpired ? 'Expired' : 'Active'}
@@ -457,12 +460,12 @@ export default function CustomerDetailModal({
 
           {/* Body Metrics - only show if any value exists */}
           {(customer.height != null || customer.weight != null || customer.bmi != null || customer.standardWeight != null) && (
-            <div className="bg-gray-50 rounded-2xl p-6 mb-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Activity className="w-5 h-5 text-green-500 shrink-0" aria-hidden />
+            <div className={`bg-gray-50 ${sectionCard} mb-4`}>
+              <h4 className={sectionTitle}>
+                <Activity className="w-4 h-4 text-green-500 shrink-0" aria-hidden />
                 Body Metrics
               </h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs sm:text-sm">
                 {customer.height != null && (
                   <div>
                     <p className="text-gray-600">Height</p>
@@ -492,13 +495,13 @@ export default function CustomerDetailModal({
           )}
 
           {/* Additional Information */}
-          <div className="bg-blue-50 rounded-2xl p-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Membership Summary</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className={`bg-blue-50 ${sectionCard}`}>
+            <h4 className={`${sectionTitle} mb-2`}>Membership Summary</h4>
+            <div className="grid grid-cols-2 gap-2.5 text-xs sm:text-sm">
               {(canAccessPayments || canViewBalanceInfo) && (
               <div>
                 <p className="text-gray-600">Balance Owed</p>
-                <p className={`text-lg font-semibold ${(customer.balance ?? 0) > 0 ? 'text-amber-600' : 'text-gray-900'}`}>
+                <p className={`font-semibold ${(customer.balance ?? 0) > 0 ? 'text-amber-600' : 'text-gray-900'}`}>
                   ${Number(customer.balance ?? 0).toFixed(2)}
                 </p>
               </div>
@@ -528,23 +531,22 @@ export default function CustomerDetailModal({
             </div>
           </div>
 
-          {/* Record Payment - balance calculation (admin only) */}
+          {/* Record Payment */}
           {canAccessPayments && (
-          <div className="bg-gradient-to-br from-amber-50 via-amber-50/90 to-orange-50/60 border border-amber-200/90 rounded-2xl p-6 shadow-sm">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-                <Banknote className="w-5 h-5" aria-hidden />
+          <div className={`mt-5 sm:mt-6 bg-gradient-to-br from-amber-50 via-amber-50/90 to-orange-50/60 border border-amber-200/90 ${sectionCard} shadow-sm`}>
+            <h4 className={`${sectionTitle} mb-2`}>
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                <Banknote className="w-4 h-4" aria-hidden />
               </span>
               Record Payment
             </h4>
-            {/* Existing balance - always visible */}
-            <div className="mb-4 p-3 rounded-lg bg-white border border-amber-200">
-              <p className="text-sm font-medium text-gray-600">Current balance (owed)</p>
-              <p className="text-xl font-bold text-amber-700">${Number(customer.balance ?? 0).toFixed(2)}</p>
+            <div className="mb-3 p-2.5 rounded-lg bg-white border border-amber-200">
+              <p className="text-xs font-medium text-gray-600">Current balance (owed)</p>
+              <p className="text-base font-bold text-amber-700">${Number(customer.balance ?? 0).toFixed(2)}</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount due ($)</label>
+                <label className="block text-xs font-medium text-gray-700 mb-0.5">Amount due ($)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -552,11 +554,11 @@ export default function CustomerDetailModal({
                   value={paymentAmountDue}
                   onChange={(e) => setPaymentAmountDue(e.target.value)}
                   disabled={isSubmittingPayment}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 disabled:opacity-50"
+                  className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 disabled:opacity-50"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount paid ($)</label>
+                <label className="block text-xs font-medium text-gray-700 mb-0.5">Amount paid ($)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -565,11 +567,11 @@ export default function CustomerDetailModal({
                   onChange={(e) => setPaymentPaid(e.target.value)}
                   disabled={isSubmittingPayment}
                   placeholder="0.00"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 disabled:opacity-50"
+                  className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 disabled:opacity-50"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Discount ($)</label>
+                <label className="block text-xs font-medium text-gray-700 mb-0.5">Discount ($)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -577,27 +579,27 @@ export default function CustomerDetailModal({
                   value={paymentDiscount}
                   onChange={(e) => setPaymentDiscount(e.target.value)}
                   disabled={isSubmittingPayment}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 disabled:opacity-50"
+                  className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 disabled:opacity-50"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">New balance (after payment)</label>
-                <p className="px-3 py-2 rounded-lg bg-white border border-gray-200 font-semibold text-gray-900">
+                <label className="block text-xs font-medium text-gray-700 mb-0.5">New balance</label>
+                <p className="px-2.5 py-1.5 text-sm rounded-lg bg-white border border-gray-200 font-semibold text-gray-900">
                   ${calculatedNewBalance.toFixed(2)}
                 </p>
               </div>
             </div>
-            <div className="mt-5 flex justify-end">
+            <div className="mt-3 flex justify-end">
               <button
                 type="button"
                 onClick={handleRecordPayment}
                 disabled={isSubmittingPayment || paidNum <= 0}
-                className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-xl font-semibold shadow-md shadow-green-600/25 hover:from-emerald-700 hover:to-green-700 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all duration-200"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-lg font-semibold shadow-sm shadow-green-600/20 hover:from-emerald-700 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all duration-200"
               >
                 {isSubmittingPayment ? (
-                  <Loader2 className="w-5 h-5 animate-spin" aria-hidden />
+                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden />
                 ) : (
-                  <Banknote className="w-5 h-5" aria-hidden />
+                  <Banknote className="w-4 h-4" aria-hidden />
                 )}
                 {isSubmittingPayment ? 'Recording...' : 'Record Payment'}
               </button>
@@ -607,14 +609,14 @@ export default function CustomerDetailModal({
         </div>
 
         {/* Footer actions — spaced from scroll content / payment card */}
-        <div className="shrink-0 mt-5 sm:mt-6 border-t border-gray-200/90 p-4 sm:p-6 pt-5 sm:pt-6 pb-[max(1rem,env(safe-area-inset-bottom))] bg-gradient-to-b from-slate-50 to-white shadow-[0_-8px_24px_-12px_rgba(15,23,42,0.12)]">
-          <div className="flex flex-col gap-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="shrink-0 mt-4 sm:mt-5 border-t border-gray-200/90 p-3 sm:p-4 pt-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-gradient-to-b from-slate-50 to-white shadow-[0_-6px_20px_-10px_rgba(15,23,42,0.1)]">
+          <div className="flex flex-col gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
               <button
                 type="button"
                 onClick={handlePrintSummary}
                 disabled={isDeleting}
-                className={`${footerBtn} w-full px-4 py-3 border border-indigo-200/80 bg-white text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300`}
+                className={`${footerBtn} w-full px-3 py-2 border border-indigo-200/80 bg-white text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300`}
               >
                 <span className={footerIconWrap('bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200')}>
                   <Printer className="w-4 h-4" strokeWidth={2} aria-hidden />
@@ -625,7 +627,7 @@ export default function CustomerDetailModal({
                 type="button"
                 onClick={onClose}
                 disabled={isDeleting}
-                className={`${footerBtn} w-full px-4 py-3 border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300`}
+                className={`${footerBtn} w-full px-3 py-2 border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300`}
               >
                 <span className={footerIconWrap('bg-gray-100 text-gray-600 group-hover:bg-gray-200')}>
                   <X className="w-4 h-4" strokeWidth={2} aria-hidden />
@@ -636,7 +638,7 @@ export default function CustomerDetailModal({
                 type="button"
                 onClick={handleWhatsAppClick}
                 disabled={isWhatsAppDisabled || isDeleting}
-                className={`${footerBtn} w-full px-4 py-3 ${
+                className={`${footerBtn} w-full px-3 py-2 ${
                   isWhatsAppDisabled || isDeleting
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                     : 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-md shadow-green-600/20 hover:from-emerald-600 hover:to-green-700 hover:shadow-lg'
@@ -660,7 +662,7 @@ export default function CustomerDetailModal({
                   onClose();
                 }}
                 disabled={isDeleting}
-                className={`${footerBtn} w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md shadow-blue-600/20 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg`}
+                className={`${footerBtn} w-full px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md shadow-blue-600/20 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg`}
               >
                 <span className={footerIconWrap('bg-white/20 text-white')}>
                   <Pencil className="w-4 h-4" strokeWidth={2} aria-hidden />
@@ -672,7 +674,7 @@ export default function CustomerDetailModal({
               type="button"
               onClick={handleDelete}
               disabled={isDeleting}
-              className={`${footerBtn} w-full px-4 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-md shadow-red-600/20 hover:from-red-600 hover:to-rose-700 hover:shadow-lg`}
+              className={`${footerBtn} w-full px-3 py-2 bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-md shadow-red-600/20 hover:from-red-600 hover:to-rose-700 hover:shadow-lg`}
             >
               {isDeleting ? (
                 <Loader2 className="w-5 h-5 animate-spin" aria-hidden />
