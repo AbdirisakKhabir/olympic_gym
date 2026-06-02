@@ -14,7 +14,7 @@ import { Search, Plus, RefreshCw, MessageCircle } from "lucide-react";
 import RenewalModal from '@/components/RenewalModal';
 import { useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
-import { CreditCard, BarChart3, LogOut, UserPlus, ChevronRight, ChevronLeft, Receipt, Menu, Wallet } from 'lucide-react';
+import { CreditCard, BarChart3, LogOut, UserPlus, ChevronRight, ChevronLeft, Receipt, Menu, Wallet, Printer } from 'lucide-react';
 import CustomerModal from '@/components/AddCustomerModal';
 import AddExpenseModal, { ExpenseFormValues } from '@/components/AddExpenseModal';
 import ExpenseReportModal from '@/components/ExpenseReportModal';
@@ -22,6 +22,9 @@ import IncomeStatementModal from '@/components/IncomeStatementModal';
 import Sidebar from '@/components/Sidebar';
 import Dashboard from '@/components/Dashboard';
 import Settings from '@/components/Settings';
+import OutstandingBalancesPrintSheet, {
+  triggerOutstandingBalancesPrint,
+} from '@/components/OutstandingBalancesPrintSheet';
 import {
   PERMISSION_MEMBERS_OUTSTANDING_BALANCE,
   PERMISSION_PAYMENTS_CREATE,
@@ -356,14 +359,15 @@ export default function CustomersPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'admin';
+  const isStaff = session?.user?.role === 'staff';
   const canAccessPayments = isAdmin;
   const canRecordPayments = useMemo(
     () => isAdmin || permissionCodes.includes(PERMISSION_PAYMENTS_CREATE),
     [isAdmin, permissionCodes]
   );
   const canViewOutstandingBalance = useMemo(
-    () => isAdmin || permissionCodes.includes(PERMISSION_MEMBERS_OUTSTANDING_BALANCE),
-    [isAdmin, permissionCodes]
+    () => isAdmin || isStaff || permissionCodes.includes(PERMISSION_MEMBERS_OUTSTANDING_BALANCE),
+    [isAdmin, isStaff, permissionCodes]
   );
   // TEMP: comment-out member SMS/WhatsApp reminder feature until re-enabled.
   const ENABLE_MEMBER_SMS = false;
@@ -485,6 +489,10 @@ export default function CustomersPage() {
     () => balanceCustomers.reduce((sum, c) => sum + (Number(c.balance) || 0), 0),
     [balanceCustomers]
   );
+
+  const handlePrintOutstandingBalances = () => {
+    triggerOutstandingBalancesPrint();
+  };
 
   const membersListForModals = activeView === 'membersBalance' ? balanceCustomers : customers;
 
@@ -1142,21 +1150,31 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
               </div>
 
               <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 mb-6 border border-gray-100">
-                <div className="relative flex-1 min-w-0">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    placeholder="Search by name or phone..."
-                    value={balanceSearch}
-                    onChange={(e) => {
-                      setBalanceSearch(e.target.value);
-                      setBalancePage(1);
-                    }}
-                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg
-                              focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400
-                              bg-gray-50/50 text-gray-900 placeholder-gray-400
-                              transition-all duration-200"
-                  />
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                  <div className="relative flex-1 min-w-0">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      placeholder="Search by name or phone..."
+                      value={balanceSearch}
+                      onChange={(e) => {
+                        setBalanceSearch(e.target.value);
+                        setBalancePage(1);
+                      }}
+                      className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg
+                                focus:ring-2 focus:ring-blue-500/50 focus:border-blue-400
+                                bg-gray-50/50 text-gray-900 placeholder-gray-400
+                                transition-all duration-200"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handlePrintOutstandingBalances}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors duration-200 shadow-sm"
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span>Print Balances</span>
+                  </button>
                 </div>
               </div>
 
@@ -1224,6 +1242,7 @@ const handleAddCustomer = (newCustomer: Omit<Customer, 'id' | 'createdAt' | 'upd
                   </button>
                 </div>
               )}
+              <OutstandingBalancesPrintSheet customers={balanceCustomers} />
             </>
           )}
           {activeView === 'members' && (

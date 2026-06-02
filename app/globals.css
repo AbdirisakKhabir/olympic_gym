@@ -55,6 +55,11 @@ canvas {
   display: none;
 }
 
+/* Outstanding balances print table */
+.outstanding-print-sheet {
+  display: none;
+}
+
 @media print {
   body.printing-membership {
     margin: 0 !important;
@@ -223,5 +228,80 @@ canvas {
 
   .membership-print-footer p {
     margin: 0;
+  }
+
+  body.printing-outstanding-balances {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  body.printing-outstanding-balances > *:not(.outstanding-print-sheet) {
+    display: none !important;
+  }
+
+  body.printing-outstanding-balances .outstanding-print-sheet {
+    display: block !important;
+    position: static;
+    width: 100%;
+    color: #111;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  .outstanding-print-inner {
+    padding: 4mm;
+  }
+
+  .outstanding-print-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px solid #1d4ed8;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+  }
+
+  .outstanding-print-header h1 {
+    margin: 0;
+    font-size: 16pt;
+    color: #1e3a8a;
+  }
+
+  .outstanding-print-header p {
+    margin: 2px 0 0;
+    font-size: 9pt;
+    color: #4b5563;
+  }
+
+  .outstanding-print-meta {
+    text-align: right;
+  }
+
+  .outstanding-print-meta p {
+    margin: 2px 0;
+    font-size: 9pt;
+    color: #374151;
+  }
+
+  .outstanding-print-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+  }
+
+  .outstanding-print-table th,
+  .outstanding-print-table td {
+    border: 1px solid #e5e7eb;
+    padding: 6px 8px;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .outstanding-print-table th {
+    background: #f3f4f6;
+    font-weight: 700;
   }
 }

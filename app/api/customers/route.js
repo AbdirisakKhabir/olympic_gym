@@ -41,9 +41,12 @@ export async function GET(request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
       const isAdmin = session.user.role === "admin";
+      const isStaff = session.user.role === "staff";
       const codes = await getPermissionCodesForUserId(uid);
       const mayView =
-        isAdmin || codes.includes(PERMISSION_MEMBERS_OUTSTANDING_BALANCE);
+        isAdmin ||
+        isStaff ||
+        codes.includes(PERMISSION_MEMBERS_OUTSTANDING_BALANCE);
       if (!mayView) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
