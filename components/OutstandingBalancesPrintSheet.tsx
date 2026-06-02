@@ -6,15 +6,6 @@ interface OutstandingBalancesPrintSheetProps {
   customers: Customer[];
 }
 
-function formatDate(value: Date | string | null | undefined) {
-  if (!value) return '—';
-  return new Date(value).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
 export default function OutstandingBalancesPrintSheet({
   customers,
 }: OutstandingBalancesPrintSheetProps) {
@@ -42,21 +33,27 @@ export default function OutstandingBalancesPrintSheet({
         <table className="outstanding-print-table">
           <thead>
             <tr>
+              <th>Image</th>
               <th>Member Name</th>
               <th>Phone</th>
+              <th>Shift</th>
               <th>Balance</th>
-              <th>Start Date</th>
-              <th>End Date</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((customer) => (
               <tr key={customer.id}>
+                <td>
+                  <img
+                    src={customer.image || '/api/placeholder/80/80'}
+                    alt={customer.name}
+                    className="outstanding-print-avatar"
+                  />
+                </td>
                 <td>{customer.name}</td>
                 <td>{customer.phone || '—'}</td>
+                <td>{customer.shift || '—'}</td>
                 <td>${Number(customer.balance ?? 0).toFixed(2)}</td>
-                <td>{formatDate(customer.registerDate)}</td>
-                <td>{formatDate(customer.expireDate)}</td>
               </tr>
             ))}
           </tbody>
