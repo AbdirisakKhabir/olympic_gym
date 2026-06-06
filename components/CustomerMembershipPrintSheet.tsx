@@ -2,6 +2,8 @@
 
 import { Customer } from '@/types/customer';
 
+const PRINT_LOGO_SRC = '/olmbic%20eh.png';
+
 interface CustomerMembershipPrintSheetProps {
   customer: Customer;
   showFinancialInfo?: boolean;
@@ -60,7 +62,7 @@ export default function CustomerMembershipPrintSheet({
     <div className="membership-print-sheet" aria-hidden="true">
       <div className="membership-print-inner">
         <header className="membership-print-header">
-          <img src="/logo.jpg" alt="" className="membership-print-logo" />
+          <img src={PRINT_LOGO_SRC} alt="Olympic Gym" className="membership-print-logo" />
           <div className="membership-print-header-text">
             <h1 className="membership-print-title">Olympic Gym</h1>
             <p className="membership-print-subtitle">Customer Membership Summary</p>

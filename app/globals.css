@@ -120,10 +120,10 @@ canvas {
   }
 
   .membership-print-logo {
-    width: 48px;
     height: 48px;
-    object-fit: cover;
-    border-radius: 6px;
+    width: auto;
+    max-width: 140px;
+    object-fit: contain;
   }
 
   .membership-print-title {
