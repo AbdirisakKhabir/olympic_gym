@@ -1,15 +1,14 @@
+import { prisma } from "@/app/lib/prisma";
 // app/api/customers/[id]/payments/route.js
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import { sessionMayViewPayments } from "@/app/lib/userPermissions";
-import { PrismaClient } from "@prisma/client";
 import {
   customerGenderMatchesAccess,
   getMemberGenderAccessForSessionUser,
 } from "@/app/lib/memberGenderAccess";
 
-const prisma = new PrismaClient();
 
 export async function GET(request, { params }) {
   const session = await getServerSession(authOptions);

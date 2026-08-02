@@ -1,7 +1,7 @@
+import { prisma } from "@/app/lib/prisma";
 // app/api/customers/route.js
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { PrismaClient } from "@prisma/client";
 import { authOptions } from "@/app/lib/auth";
 import {
   getPermissionCodesForUserId,
@@ -12,7 +12,6 @@ import {
   getMemberGenderAccessForSessionUser,
 } from "@/app/lib/memberGenderAccess";
 
-const prisma = new PrismaClient();
 
 export async function GET(request) {
   try {

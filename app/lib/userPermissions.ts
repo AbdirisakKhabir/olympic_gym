@@ -1,11 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/app/lib/prisma";
 import {
   PERMISSION_MEMBERS_OUTSTANDING_BALANCE,
   PERMISSION_PAYMENTS_CREATE,
   PERMISSION_PAYMENTS_VIEW,
 } from "./permissionCodes";
 
-const prisma = new PrismaClient();
 
 export {
   PERMISSION_MEMBERS_OUTSTANDING_BALANCE,

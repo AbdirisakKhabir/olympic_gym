@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/app/lib/prisma";
 import { v2 as cloudinary } from "cloudinary";
 import {
   customerGenderMatchesAccess,
@@ -12,7 +12,6 @@ cloudinary.config({
   api_secret: process.env.API_SECRET,
 });
 
-const prisma = new PrismaClient();
 
 async function uploadToCloudinary(file, resourceType = "auto") {
   const buffer = Buffer.from(await file.arrayBuffer());

@@ -1,11 +1,10 @@
+import { prisma } from "@/app/lib/prisma";
 // lib/auth.ts
 import { NextAuthOptions, User } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
-import { PrismaClient } from '@prisma/client';
 import { JWT } from 'next-auth/jwt';
 
-const prisma = new PrismaClient();
 
 // Extend the built-in User type to include our custom fields
 interface CustomUser extends User {

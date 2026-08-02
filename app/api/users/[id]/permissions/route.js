@@ -1,8 +1,7 @@
+import { prisma } from "@/app/lib/prisma";
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { MEMBER_GENDER_ACCESS_VALUES, normalizeMemberGenderAccess } from "@/app/lib/memberGenderAccess";
 
-const prisma = new PrismaClient();
 
 // Get effective permissions for a user (based on their role)
 export async function GET(request, { params }) {

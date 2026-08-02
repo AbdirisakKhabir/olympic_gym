@@ -1,11 +1,10 @@
+import { prisma } from "@/app/lib/prisma";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
-import { PrismaClient } from "@prisma/client";
 import { normalizeMemberGenderAccess } from "@/app/lib/memberGenderAccess";
 import { getPermissionCodesForUserId } from "@/app/lib/userPermissions";
 
-const prisma = new PrismaClient();
 
 /** Current user profile fields needed by the client (member list UI, etc.) */
 export async function GET() {

@@ -1,6 +1,6 @@
+import { prisma } from "@/app/lib/prisma";
 // app/api/customer/[id]/route.js
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { v2 as cloudinary } from "cloudinary";
 import {
   customerGenderMatchesAccess,
@@ -14,7 +14,6 @@ cloudinary.config({
   api_secret: process.env.API_SECRET,
 });
 
-const prisma = new PrismaClient();
 
 // Helper: Upload to Cloudinary
 async function uploadToCloudinary(file, resourceType = "image") {
@@ -169,8 +168,6 @@ export async function PUT(request, { params }) {
       },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 

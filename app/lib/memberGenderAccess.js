@@ -1,8 +1,7 @@
+import { prisma } from "@/app/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
-import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
 
 export const MEMBER_GENDER_ACCESS_VALUES = ["both", "male", "female"];
 

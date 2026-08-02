@@ -1,12 +1,11 @@
+import { prisma } from "@/app/lib/prisma";
 // /api/customers/stats/route.js
 import { NextResponse } from 'next/server';
-import { PrismaClient } from "@prisma/client";
 import {
   applyMemberGenderAccessToWhere,
   getMemberGenderAccessForSessionUser,
 } from "@/app/lib/memberGenderAccess";
 
-const prisma = new PrismaClient();
 
 export async function GET() {
   try {
